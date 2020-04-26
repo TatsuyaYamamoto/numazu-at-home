@@ -1,0 +1,7 @@
+{
+  "name": "numazu-at-home",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Tatsuya Yamamoto <yamamoto.tatsuya@fujixerox.co.jp>",
+  "license": "MIT"
+}
