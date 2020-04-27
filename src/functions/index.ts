@@ -1,13 +1,16 @@
 import {https} from 'firebase-functions';
 
 import next from "next";
+import express from "express";
+
+import cacheRouter from "./api/cache";
 
 // https://blog.katsubemakito.net/firebase/functions-environmentvariable
 const isUnderFirebaseFunction =
   process.env.PWD && process.env.PWD.startsWith("/srv");
 
 const nextServer = next({
-  dir: isUnderFirebaseFunction
+  dir: isUnderFirebaseFunction || process.env.FUNCTIONS_EMULATOR
     ? // default value
     "."
     : // firebase deployのときにlocalでfunctionを実行する(確認: "firebase-tools": "^7.14.0")が、nextの実装を読み込むルートパスがproject rootなのでエラーが発生する。
@@ -15,7 +18,7 @@ const nextServer = next({
       // Error: Could not find a valid build in the '/Users/fx30328/workspace/projects/sokontokoro/apps/dl-code_web_app/next' directory! Try building your app with 'next build' before starting the server.
     "dist/functions",
 
-  conf: { distDir: "next" }
+  conf: {distDir: "next"}
 });
 
 const handle = nextServer.getRequestHandler();
@@ -25,10 +28,7 @@ export const nextApp = https.onRequest((req, res) => {
   return nextServer.prepare().then(() => handle(req, res));
 });
 
-export const api = https.onRequest((_, res) => {
-  // TODO
-  // @ts-ignore
-  res.json({
-    message: "api!"
-  });
-});
+const expressApp = express();
+expressApp.use("/api/cache", cacheRouter);
+
+export const api = https.onRequest(expressApp);
