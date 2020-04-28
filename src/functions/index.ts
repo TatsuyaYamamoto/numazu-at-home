@@ -1,4 +1,11 @@
-import {https} from 'firebase-functions';
+import {credential, initializeApp} from "firebase-admin";
+
+initializeApp({
+  credential: credential.applicationDefault(),
+  databaseURL: "https://numazu-at-home-dev.firebaseio.com"
+});
+
+import {runWith} from 'firebase-functions';
 
 import next from "next";
 import express from "express";
@@ -23,7 +30,7 @@ const nextServer = next({
 
 const handle = nextServer.getRequestHandler();
 
-export const nextApp = https.onRequest((req, res) => {
+export const nextApp = runWith({}).https.onRequest((req, res) => {
   // @ts-ignore
   return nextServer.prepare().then(() => handle(req, res));
 });
@@ -31,4 +38,6 @@ export const nextApp = https.onRequest((req, res) => {
 const expressApp = express();
 expressApp.use("/api/cache", cacheRouter);
 
-export const api = https.onRequest(expressApp);
+export const api = runWith({
+  timeoutSeconds: 540
+}).https.onRequest(expressApp);
