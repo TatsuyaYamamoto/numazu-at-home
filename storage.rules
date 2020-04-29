@@ -3,5 +3,11 @@ service firebase.storage {
     match /{allPaths=**} {
       allow read, write: if request.auth!=null;
     }
+    match /media/{mediaId}{
+    	allow read;
+    }
+    match /profile_images/{imageId}{
+    	allow read;
+    }
   }
 }
