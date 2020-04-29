@@ -1,7 +1,7 @@
 {
   "name": "numazu-at-home",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.functions.js",
   "author": "Tatsuya Yamamoto <yamamoto.tatsuya@fujixerox.co.jp>",
   "license": "MIT",
   "engines": {
@@ -9,10 +9,10 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "dev": "next src/app",
+    "dev": "next src",
     "serve": "firebase emulators:start --only functions,hosting",
-    "build-client": "next build src/app",
-    "build-functions": "tsc --project src/functions",
+    "build-client": "next build src",
+    "build-functions": "tsc --project src/tsconfig.functions.json",
     "build-copy-deps": "run-s build-copy-deps:*",
     "build-copy-deps:cpx": "cpx '*{package.json,yarn.lock}' 'dist/functions'",
     "build-copy-deps:yarn": "yarn install --production --cwd dist/functions",

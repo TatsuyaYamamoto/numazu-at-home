@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
     "target": "es2017",
+    "jsx": "preserve",
     "module": "commonjs",
     "esModuleInterop": true,
     "strict": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "sourceMap": true,
-    "outDir": "../../dist/functions"
-  }
+    "outDir": "../dist/functions"
+  },
+  "exclude": ["**/*.tsx"]
 }
