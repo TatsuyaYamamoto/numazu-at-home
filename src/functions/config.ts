@@ -1,8 +1,8 @@
-import {config} from "firebase-functions";
+import { config } from "firebase-functions";
 
 export interface Config {
   instagram_graph_api: {
-    access_token: string
+    access_token: string;
   };
 }
 

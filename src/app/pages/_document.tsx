@@ -1,9 +1,9 @@
-import Document, {Html, Head, Main, NextScript} from 'next/document';
+import Document, { Html, Head, Main, NextScript } from "next/document";
 
-import {ServerStyleSheet} from "styled-components";
-import {ServerStyleSheets} from '@material-ui/core/styles';
+import { ServerStyleSheet } from "styled-components";
+import { ServerStyleSheets } from "@material-ui/core/styles";
 
-import theme from '../theme';
+import theme from "../theme";
 
 class MyDocument extends Document {
   render() {
@@ -11,15 +11,15 @@ class MyDocument extends Document {
       <Html lang="ja">
         <Head>
           {/* PWA primary color */}
-          <meta name="theme-color" content={theme.palette.primary.main}/>
+          <meta name="theme-color" content={theme.palette.primary.main} />
           <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
           />
         </Head>
         <body>
-        <Main/>
-        <NextScript/>
+          <Main />
+          <NextScript />
         </body>
       </Html>
     );

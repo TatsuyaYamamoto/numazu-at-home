@@ -1,6 +1,6 @@
 import React from "react";
 
-import {Button} from "@material-ui/core"
+import { Button } from "@material-ui/core";
 
 const IndexPage = () => {
   return (
@@ -9,7 +9,7 @@ const IndexPage = () => {
         Primary
       </Button>
     </>
-  )
-}
+  );
+};
 
 export default IndexPage;

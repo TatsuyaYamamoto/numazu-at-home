@@ -20,7 +20,7 @@
     "build-pro": "cross-env NODE_ENV=production  npm-run-all --print-label clean build-client --parallel build-functions build-copy-deps",
     "deploy-dev": "firebase deploy --project numazu-at-home-dev",
     "deploy-pro": "firebase deploy --project numazu-at-home",
-    "format": "prettier --write app/**/*.{ts,tsx,js,jsx,json,css}"
+    "format": "prettier --write src/**/*.{ts,tsx,json}"
   },
   "husky": {
     "hooks": {
