@@ -1,9 +1,13 @@
 import React from "react";
 
+import {Button} from "@material-ui/core"
+
 const IndexPage = () => {
   return (
     <>
-      IndexPage
+      <Button variant="contained" color="primary">
+        Primary
+      </Button>
     </>
   )
 }
