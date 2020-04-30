@@ -2,9 +2,9 @@ import express from "express";
 import fetch from "node-fetch";
 import { firestore } from "firebase-admin";
 
-import config from "../config.functions";
-import { IGHashtagRecentMedia, IGPaging } from "../share/models/IG";
-import { CommandDocument, CommandType } from "../share/models/Command";
+import config from "../../config.functions";
+import { IGHashtagRecentMedia, IGPaging } from "../../share/models/IG";
+import { CommandDocument, CommandType } from "../../share/models/Command";
 
 export type CommandColRef = firestore.CollectionReference<CommandDocument>;
 
@@ -44,7 +44,7 @@ const searchMediasByHashtag = async (): Promise<IGHashtagRecentMedia[]> => {
   return medias;
 };
 
-router.post("/instagram", (req, res, next) => {
+router.post("/load_ig_hashtag_recent_media", (req, res, next) => {
   const commandColRef = firestore().collection("commands") as CommandColRef;
   const newCommandDocRef = commandColRef.doc();
   const commandDataColRef = newCommandDocRef.collection("data");

@@ -5,12 +5,12 @@ initializeApp({
   databaseURL: "https://numazu-at-home-dev.firebaseio.com",
 });
 
-import { runWith, firestore } from "firebase-functions";
+import { https, firestore } from "firebase-functions";
 
 import next from "next";
 import express from "express";
 
-import cacheRouter from "./api/cache";
+import commandRouter from "./functions/api/command";
 import _onCreateCommend from "./functions/firestore/onCreateCommend";
 
 // https://blog.katsubemakito.net/firebase/functions-environmentvariable
@@ -32,17 +32,15 @@ const nextServer = next({
 
 const handle = nextServer.getRequestHandler();
 
-export const nextApp = runWith({}).https.onRequest((req, res) => {
+export const nextApp = https.onRequest((req, res) => {
   // @ts-ignore
   return nextServer.prepare().then(() => handle(req, res));
 });
 
 const expressApp = express();
-expressApp.use("/api/cache", cacheRouter);
+expressApp.use("/api/command", commandRouter);
 
-export const api = runWith({
-  timeoutSeconds: 540,
-}).https.onRequest(expressApp);
+export const api = https.onRequest(expressApp);
 
 export const onCreateCommend = firestore
   .document("commands/{commandId}/data/{dataId}")
