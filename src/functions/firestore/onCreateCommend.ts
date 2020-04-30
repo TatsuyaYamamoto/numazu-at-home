@@ -13,13 +13,13 @@ type PostColRef = firestore.CollectionReference<PostDocument>;
 
 const onCreateCommend = async (
   snapshot: firestore.DocumentSnapshot,
-  context: EventContext
+  _: EventContext
 ): Promise<any> => {
-  const newCommand = (
-    await snapshot.ref.parent.parent.get()
-  ).data() as CommandDocument;
+  const newCommand = (await snapshot.ref.parent.parent?.get())?.data() as
+    | CommandDocument
+    | undefined;
 
-  if (newCommand && newCommand.type === "LOAD_IG_HASHTAG_RECENT_MEDIA") {
+  if (newCommand?.type === "LOAD_IG_HASHTAG_RECENT_MEDIA") {
     const data = snapshot.data() as IGHashtagRecentMedia;
 
     return onLoadIgHashtagRecentMedia(data);

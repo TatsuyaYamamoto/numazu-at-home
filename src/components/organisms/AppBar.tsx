@@ -1,7 +1,8 @@
 import React, { FC } from "react";
+import { css, ThemeProps } from "styled-components";
 
 import { default as MuiAppBar } from "@material-ui/core/AppBar";
-import { Toolbar, InputBase } from "@material-ui/core";
+import { Toolbar, InputBase, Theme } from "@material-ui/core";
 import { fade } from "@material-ui/core/styles";
 
 import SearchIcon from "@material-ui/icons/Search";
@@ -14,32 +15,31 @@ const SearchTextBox: FC = () => {
   return (
     <div
       css={`
-        position: relative;
-        border-radius: ${(props) => props.theme.shape.borderRadius}px;
-        background-color: ${(props) =>
-          fade(props.theme.palette.common.white, 0.15)};
-        &:hover {
-          background-color: ${(props) =>
-            fade(props.theme.palette.common.white, 0.25)};
-        }
-        margin-right: ${(props) => props.theme.spacing(2)}px;
-        margin-left: 0;
-        width: 100%;
-        //[theme.breakpoints.up('sm')]: {
-        //  marginLeft: theme.spacing(3);
-        //  width: 'auto';
-        //};
+        ${({ theme }: ThemeProps<Theme>) => css`
+          position: relative;
+          width: 100%;
+          margin-left: 0;
+          margin-right: ${theme.spacing(2)}px;
+          border-radius: ${theme.shape.borderRadius}px;
+          background-color: ${fade(theme.palette.common.white, 0.15)};
+
+          &:hover {
+            background-color: ${fade(theme.palette.common.white, 0.25)};
+          }
+        `}
       `}
     >
       <div
         css={`
-          padding: ${(props) => props.theme.spacing(0, 2)}px;
-          height: 100%;
-          position: absolute;
-          pointer-events: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          ${({ theme }: ThemeProps<Theme>) => css`
+            padding: ${theme.spacing(0, 2)}px;
+            height: 100%;
+            position: absolute;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          `}
         `}
       >
         <SearchIcon />
@@ -53,10 +53,12 @@ const SearchTextBox: FC = () => {
           }
 
           & > input {
-            padding: ${(props) => props.theme.spacing(1, 1, 1, 0)}px;
-            padding-left: calc(1em + ${(props) => props.theme.spacing(4)}px);
-            transition: ${(props) => props.theme.transitions.create("width")};
-            width: 100%;
+            ${({ theme }: ThemeProps<Theme>) => css`
+              width: 100%;
+              padding: ${theme.spacing(1, 1, 1, 0)}px;
+              padding-left: calc(1em + ${theme.spacing(4)}px);
+              transition: ${theme.transitions.create("width")};
+            `}
           }
         `}
       />

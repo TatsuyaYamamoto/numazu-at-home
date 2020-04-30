@@ -44,7 +44,7 @@ const searchMediasByHashtag = async (): Promise<IGHashtagRecentMedia[]> => {
   return medias;
 };
 
-router.post("/load_ig_hashtag_recent_media", (req, res, next) => {
+router.post("/load_ig_hashtag_recent_media", (_, res, next) => {
   const commandColRef = firestore().collection("commands") as CommandColRef;
   const newCommandDocRef = commandColRef.doc();
   const commandDataColRef = newCommandDocRef.collection("data");

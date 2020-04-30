@@ -1,4 +1,5 @@
 import React, { FC, useEffect, useState } from "react";
+import { firestore } from "firebase";
 
 import {
   Avatar,
@@ -11,6 +12,8 @@ import {
 import { red } from "@material-ui/core/colors";
 
 import useFirebase from "../hooks/useFirebase";
+import PostDocument, { MediaType } from "../../share/models/Post";
+import { Provider } from "../../share/models/types";
 
 interface PostListItemProps {
   authorName: string;
@@ -76,9 +79,22 @@ const PostListItem: FC<PostListItemProps> = (props) => {
   );
 };
 
+interface Post {
+  id: string;
+  originalId: string;
+  provider: Provider;
+  author: string;
+  text: string;
+  timestamp: Date;
+  mediaType: MediaType;
+  mediaUrls: string[];
+  deleted: boolean;
+  createdAt: firestore.FieldValue;
+}
+
 const PostList: FC = () => {
   const { app: firebaseApp } = useFirebase();
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     if (!firebaseApp) {
@@ -86,15 +102,19 @@ const PostList: FC = () => {
     }
 
     (async () => {
-      const query = await firebaseApp.firestore().collection(`posts`).get();
+      type PostColRef = firestore.CollectionReference<PostDocument>;
+      const postColRef = firebaseApp
+        .firestore()
+        .collection(`posts`) as PostColRef;
+      const query = await postColRef.get();
       const loadedPosts = query.docs.map((doc) => {
         return {
           ...doc.data(),
           id: doc.id,
+          author: "TODO",
           timestamp: doc.data().timestamp.toDate(),
         };
       });
-      console.log(loadedPosts);
 
       setPosts(loadedPosts);
     })();
@@ -105,7 +125,7 @@ const PostList: FC = () => {
       {posts.map((post) => (
         <PostListItem
           key={post.id}
-          authorName={"post.authorName"}
+          authorName={post.author}
           authorProfileImageUrl={undefined}
           timestamp={post.timestamp}
           mediaUrls={post.mediaUrls}
