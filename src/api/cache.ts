@@ -1,19 +1,12 @@
 import express from "express";
 import fetch from "node-fetch";
 import { firestore } from "firebase-admin";
-import { JSDOM } from "jsdom";
 
 import config from "../config.functions";
-import {
-  IGHashtagRecentMedia,
-  IGPaging,
-  IGSharedData,
-} from "../share/models/IG";
-import PostDocument from "../share/models/Post";
-import UserDocument from "../share/models/User";
+import { IGHashtagRecentMedia, IGPaging } from "../share/models/IG";
+import { CommandDocument, CommandType } from "../share/models/Command";
 
-type UserColRef = firestore.CollectionReference<UserDocument>;
-type PostColRef = firestore.CollectionReference<PostDocument>;
+export type CommandColRef = firestore.CollectionReference<CommandDocument>;
 
 const router = express.Router();
 
@@ -51,118 +44,33 @@ const searchMediasByHashtag = async (): Promise<IGHashtagRecentMedia[]> => {
   return medias;
 };
 
-const parsePermalink = async (permalink: string): Promise<IGSharedData> => {
-  const res = await fetch(permalink, { redirect: "follow" });
+router.post("/instagram", (req, res, next) => {
+  const commandColRef = firestore().collection("commands") as CommandColRef;
+  const newCommandDocRef = commandColRef.doc();
+  const commandDataColRef = newCommandDocRef.collection("data");
+  const commandType: CommandType = "LOAD_IG_HASHTAG_RECENT_MEDIA";
 
-  if (!res.ok) {
-    throw new Error("");
-  }
-
-  const body = await res.text();
-  const dom = new JSDOM(body);
-  const matches = dom.window.document.querySelectorAll("script");
-
-  const sharedDataScript = Array.from(matches).find((match) => {
-    return match.text.trim().startsWith("window._sharedData");
-  });
-
-  if (!sharedDataScript) {
-    throw new Error("script tag including 'window._sharedData' was not found.");
-  }
-
-  const openingBraceIndex = sharedDataScript.text.indexOf("{");
-  const closingBraceIndex = sharedDataScript.text.lastIndexOf("}");
-  const sharedDataJsonText = sharedDataScript.text.substring(
-    openingBraceIndex,
-    closingBraceIndex + 1
-  );
-
-  try {
-    return JSON.parse(sharedDataJsonText) as IGSharedData;
-  } catch (e) {
-    console.error(
-      "json parse error. parse target text => ",
-      sharedDataJsonText
-    );
-    throw e;
-  }
-};
-
-router.post("/instagram", (_, res, next) => {
   (async () => {
     const igHashtagRecentMedias = await searchMediasByHashtag();
     const igHashtagRecentMediasSize = igHashtagRecentMedias.length;
 
     console.log(`igHashtagRecentMedias size: ${igHashtagRecentMediasSize}`);
 
-    const postCol = firestore().collection(`posts`) as PostColRef;
-    const userCol = firestore().collection(`users`) as UserColRef;
     const batch = firestore().batch();
 
+    batch.set(newCommandDocRef, {
+      type: commandType,
+      createdAt: firestore.FieldValue.serverTimestamp(),
+    });
+
     for (const igMedia of igHashtagRecentMedias) {
-      const provider = "instagram";
       const originalPostId = igMedia.id;
-      const postId = `${provider}|${originalPostId}`;
+      const dataId = `instagram|${originalPostId}`;
+      const commandDataDocRef = commandDataColRef.doc(dataId);
 
-      const postDocRef = postCol.doc(`instagram|${igMedia.id}`);
-      const postDoc = await postDocRef.get();
-
-      if (postDoc.exists) {
-        console.log(`IGMedia with ID '${igMedia.id}' is found.`);
-        continue;
-      }
-
-      console.log(`IGMedia with ID '${igMedia.id}' does not exist`);
-      const igSharedData = await parsePermalink(igMedia.permalink);
-      const igShortcodeMedia =
-        igSharedData.entry_data.PostPage[0].graphql.shortcode_media;
-      console.log(
-        `IGMedia's sharedData is parsed. permalink: ${igMedia.permalink}`
-      );
-
-      const {
-        id: authorId,
-        full_name,
-        profile_pic_url,
-        username,
-      } = igShortcodeMedia.owner;
-      const timestamp = new Date(igShortcodeMedia.taken_at_timestamp);
-      const originalUserId = authorId;
-      const userId = `${provider}|${originalUserId}`;
-
-      const userDocRef = userCol.doc(userId);
-      const userDoc = await postDocRef.get();
-
-      if (!userDoc.exists) {
-        const newUserDoc: UserDocument = {
-          id: userId,
-          originalId: originalUserId,
-          provider: "instagram",
-          displayName: full_name,
-          useName: username,
-          profileImageUrl: profile_pic_url,
-          createdAt: firestore.FieldValue.serverTimestamp(),
-        };
-        batch.set(userDocRef, newUserDoc, {});
-      }
-
-      const newPostDoc: PostDocument = {
-        id: postId,
-        originalId: originalPostId,
-        provider,
-        author: userDocRef,
-        text: igMedia.caption,
-        timestamp: firestore.Timestamp.fromDate(timestamp),
-        mediaType: igMedia.media_type === "VIDEO" ? "video" : "image",
-        mediaUrls: igMedia.children
-          ? igMedia.children.map(({ permalink }) => `${permalink}media`)
-          : [`${igMedia.permalink}media`],
-        deleted: false,
-        createdAt: firestore.FieldValue.serverTimestamp(),
-      };
-
-      batch.set(postDocRef, newPostDoc, {});
+      batch.set(commandDataDocRef, igMedia, {});
     }
+
     await batch.commit();
 
     res.json({

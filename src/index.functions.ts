@@ -5,12 +5,13 @@ initializeApp({
   databaseURL: "https://numazu-at-home-dev.firebaseio.com",
 });
 
-import { runWith } from "firebase-functions";
+import { runWith, firestore } from "firebase-functions";
 
 import next from "next";
 import express from "express";
 
 import cacheRouter from "./api/cache";
+import _onCreateCommend from "./functions/firestore/onCreateCommend";
 
 // https://blog.katsubemakito.net/firebase/functions-environmentvariable
 const isUnderFirebaseFunction =
@@ -42,3 +43,7 @@ expressApp.use("/api/cache", cacheRouter);
 export const api = runWith({
   timeoutSeconds: 540,
 }).https.onRequest(expressApp);
+
+export const onCreateCommend = firestore
+  .document("commands/{commandId}/data/{dataId}")
+  .onCreate(_onCreateCommend);
