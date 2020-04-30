@@ -16,7 +16,7 @@ interface PostListItemProps {
   authorName: string;
   authorProfileImageUrl?: string;
   timestamp: Date;
-  mediaImageUrls: string[];
+  mediaUrls: string[];
   text: string;
 }
 const PostListItem: FC<PostListItemProps> = (props) => {
@@ -24,7 +24,7 @@ const PostListItem: FC<PostListItemProps> = (props) => {
     authorName,
     authorProfileImageUrl,
     timestamp,
-    mediaImageUrls,
+    mediaUrls,
     text,
   } = props;
 
@@ -54,11 +54,21 @@ const PostListItem: FC<PostListItemProps> = (props) => {
           padding-top: 56.25%; // 16:9
         `}
         // TODO support multiple media
-        image={mediaImageUrls[0]}
+        image={mediaUrls[0]}
         title="Paella dish"
       />
       <CardContent>
-        <Typography variant="body2" color="textSecondary" component="p">
+        <Typography
+          variant="body2"
+          color="textSecondary"
+          component="p"
+          css={`
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
+          `}
+        >
           {text}
         </Typography>
       </CardContent>
@@ -78,13 +88,13 @@ const PostList: FC = () => {
     (async () => {
       const query = await firebaseApp.firestore().collection(`posts`).get();
       const loadedPosts = query.docs.map((doc) => {
-        console.log(doc.data());
         return {
           ...doc.data(),
           id: doc.id,
           timestamp: doc.data().timestamp.toDate(),
         };
       });
+      console.log(loadedPosts);
 
       setPosts(loadedPosts);
     })();
@@ -95,10 +105,10 @@ const PostList: FC = () => {
       {posts.map((post) => (
         <PostListItem
           key={post.id}
-          authorName={post.authorName}
+          authorName={"post.authorName"}
           authorProfileImageUrl={undefined}
           timestamp={post.timestamp}
-          mediaImageUrls={post.mediaImageUrls}
+          mediaUrls={post.mediaUrls}
           text={post.text}
         />
       ))}

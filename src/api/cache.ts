@@ -4,47 +4,18 @@ import { firestore } from "firebase-admin";
 import { JSDOM } from "jsdom";
 
 import config from "../config.functions";
+import {
+  IGHashtagRecentMedia,
+  IGPaging,
+  IGSharedData,
+} from "../share/models/IG";
+import PostDocument from "../share/models/Post";
+import UserDocument from "../share/models/User";
+
+type UserColRef = firestore.CollectionReference<UserDocument>;
+type PostColRef = firestore.CollectionReference<PostDocument>;
 
 const router = express.Router();
-
-/**
- * https://developers.facebook.com/docs/instagram-api/reference/hashtag/recent-media
- */
-interface IGHashtagRecentMedia {
-  caption: string; //
-  children: string; // (only returned for Album IG Media)
-  comments_count: string; //
-  id: string; //
-  like_count: string; //
-  media_type: string; //
-  media_url: string; // (not returned for Album IG Media)
-  permalink: string; //
-}
-
-interface IGPaging {
-  cursors?: {
-    after?: string;
-  };
-  next?: string;
-}
-
-interface IGSharedData {
-  id: string;
-  shortcode: string;
-  display_url: string;
-  is_video: boolean;
-  taken_at_timestamp: string;
-  location: {
-    id: string;
-    name: string;
-  };
-  owner: {
-    id: string;
-    profile_pic_url: string;
-    username: string;
-    full_name: string;
-  };
-}
 
 const searchMediasByHashtag = async (): Promise<IGHashtagRecentMedia[]> => {
   const instagramBusinessAccountId = "17841412231763694";
@@ -124,36 +95,73 @@ router.post("/instagram", (_, res, next) => {
 
     console.log(`igHashtagRecentMedias size: ${igHashtagRecentMediasSize}`);
 
-    const cachedPostsCol = firestore().collection(`cached_posts`);
+    const postCol = firestore().collection(`posts`) as PostColRef;
+    const userCol = firestore().collection(`users`) as UserColRef;
     const batch = firestore().batch();
 
     for (const igMedia of igHashtagRecentMedias) {
-      const docRef = cachedPostsCol.doc(`instagram|${igMedia.id}`);
-      const doc = await docRef.get();
+      const provider = "instagram";
+      const originalPostId = igMedia.id;
+      const postId = `${provider}|${originalPostId}`;
 
-      if (!doc.exists) {
-        console.log(`IGMedia with ID '${igMedia.id}' does not exist`);
-        const igSharedData = await parsePermalink(igMedia.permalink);
-        console.log(
-          `IGMedia's sharedData is parsed. permalink: ${igMedia.permalink}`
-        );
+      const postDocRef = postCol.doc(`instagram|${igMedia.id}`);
+      const postDoc = await postDocRef.get();
 
-        batch.set(
-          docRef,
-          {
-            id: igMedia.id,
-            source: "instagram",
-            deleted: false,
-            row_data: {
-              ...igMedia,
-              ...igSharedData,
-            },
-          },
-          {}
-        );
-      } else {
+      if (postDoc.exists) {
         console.log(`IGMedia with ID '${igMedia.id}' is found.`);
+        continue;
       }
+
+      console.log(`IGMedia with ID '${igMedia.id}' does not exist`);
+      const igSharedData = await parsePermalink(igMedia.permalink);
+      const igShortcodeMedia =
+        igSharedData.entry_data.PostPage[0].graphql.shortcode_media;
+      console.log(
+        `IGMedia's sharedData is parsed. permalink: ${igMedia.permalink}`
+      );
+
+      const {
+        id: authorId,
+        full_name,
+        profile_pic_url,
+        username,
+      } = igShortcodeMedia.owner;
+      const timestamp = new Date(igShortcodeMedia.taken_at_timestamp);
+      const originalUserId = authorId;
+      const userId = `${provider}|${originalUserId}`;
+
+      const userDocRef = userCol.doc(userId);
+      const userDoc = await postDocRef.get();
+
+      if (!userDoc.exists) {
+        const newUserDoc: UserDocument = {
+          id: userId,
+          originalId: originalUserId,
+          provider: "instagram",
+          displayName: full_name,
+          useName: username,
+          profileImageUrl: profile_pic_url,
+          createdAt: firestore.FieldValue.serverTimestamp(),
+        };
+        batch.set(userDocRef, newUserDoc, {});
+      }
+
+      const newPostDoc: PostDocument = {
+        id: postId,
+        originalId: originalPostId,
+        provider,
+        author: userDocRef,
+        text: igMedia.caption,
+        timestamp: firestore.Timestamp.fromDate(timestamp),
+        mediaType: igMedia.media_type === "VIDEO" ? "video" : "image",
+        mediaUrls: igMedia.children
+          ? igMedia.children.map(({ permalink }) => `${permalink}media`)
+          : [`${igMedia.permalink}media`],
+        deleted: false,
+        createdAt: firestore.FieldValue.serverTimestamp(),
+      };
+
+      batch.set(postDocRef, newPostDoc, {});
     }
     await batch.commit();
 
