@@ -1,12 +1,15 @@
-import React, { FC, useEffect, useState, useMemo } from "react";
+import React, { FC, useEffect, useState, useMemo, useCallback } from "react";
 import { firestore } from "firebase";
 
 import {
+  InfiniteLoader,
   WindowScroller,
   List,
   ListRowRenderer,
   CellMeasurer,
   CellMeasurerCache,
+  Index,
+  IndexRange,
 } from "react-virtualized";
 import {
   Avatar,
@@ -109,29 +112,15 @@ const PostList: FC = (props) => {
   const { ...others } = props;
   const { app: firebaseApp } = useFirebase();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [lastPostDocSnap, setLastPostDocSnap] = useState<
+    firestore.QueryDocumentSnapshot | undefined
+  >();
+  const [hasMoreItem, setHasMoreItem] = useState(true);
 
   useEffect(() => {
     if (!firebaseApp) {
       return;
     }
-
-    (async () => {
-      type PostColRef = firestore.CollectionReference<PostDocument>;
-      const postColRef = firebaseApp
-        .firestore()
-        .collection(`posts`) as PostColRef;
-      const query = await postColRef.get();
-      const loadedPosts = query.docs.map((doc) => {
-        return {
-          ...doc.data(),
-          id: doc.id,
-          author: "TODO",
-          timestamp: doc.data().timestamp.toDate(),
-        };
-      });
-
-      setPosts(loadedPosts);
-    })();
   }, [firebaseApp]);
 
   const rowRenderer: ListRowRenderer = ({ key, index, style, parent }) => {
@@ -166,8 +155,6 @@ const PostList: FC = (props) => {
     );
   };
 
-  const rowCount = useMemo(() => Math.max(posts.length, 10), [posts]);
-
   const cellMeasurerCache = useMemo(
     () =>
       new CellMeasurerCache({
@@ -177,24 +164,86 @@ const PostList: FC = (props) => {
     []
   );
 
+  const rowCount = useMemo(
+    () => (hasMoreItem && firebaseApp ? posts.length + 5 : posts.length),
+    [hasMoreItem, posts, firebaseApp]
+  );
+
+  const isRowLoaded = ({ index }: Index): boolean => {
+    return !!posts[index];
+  };
+
+  const loadMoreRows = useCallback(
+    async ({ startIndex, stopIndex }: IndexRange): Promise<any> => {
+      console.log("loadMoreRows", startIndex, stopIndex);
+
+      if (!firebaseApp) {
+        console.warn("FirebaseApp is not initialized.");
+        return;
+      }
+
+      const limit = stopIndex - startIndex + 1;
+      type PostColRef = firestore.CollectionReference<PostDocument>;
+      const postColRef = firebaseApp
+        .firestore()
+        .collection(`posts`) as PostColRef;
+
+      let query = postColRef.orderBy("timestamp", "desc").limit(limit);
+
+      if (lastPostDocSnap) {
+        query = query.startAfter(lastPostDocSnap);
+      }
+
+      const postQuerySnap = await query.get();
+
+      if (postQuerySnap.empty) {
+        setHasMoreItem(false);
+        return;
+      }
+
+      const loadedPosts = postQuerySnap.docs.map((doc) => {
+        return {
+          ...doc.data(),
+          id: doc.id,
+          author: "TODO",
+          timestamp: doc.data().timestamp.toDate(),
+        };
+      });
+
+      setLastPostDocSnap(postQuerySnap.docs[postQuerySnap.size - 1]);
+
+      setPosts((prev) => [...prev, ...loadedPosts]);
+    },
+    [firebaseApp, lastPostDocSnap, hasMoreItem]
+  );
+
   return (
     <div {...others}>
-      <WindowScroller>
-        {({ height, width, scrollTop, isScrolling }) => (
-          <List
-            height={height}
-            autoHeight={true}
-            width={width}
-            autoWidth={true}
-            isScrolling={isScrolling}
-            // onScroll={onChildScroll}
-            scrollTop={scrollTop}
-            rowCount={rowCount}
-            rowHeight={cellMeasurerCache.rowHeight}
-            rowRenderer={rowRenderer}
-          />
+      <InfiniteLoader
+        isRowLoaded={isRowLoaded}
+        loadMoreRows={loadMoreRows}
+        rowCount={rowCount}
+      >
+        {({ onRowsRendered }) => (
+          <WindowScroller>
+            {({ height, width, scrollTop, isScrolling }) => (
+              <List
+                height={height}
+                autoHeight={true}
+                width={width}
+                autoWidth={true}
+                isScrolling={isScrolling}
+                // onScroll={onChildScroll}
+                onRowsRendered={onRowsRendered}
+                scrollTop={scrollTop}
+                rowCount={rowCount}
+                rowHeight={cellMeasurerCache.rowHeight}
+                rowRenderer={rowRenderer}
+              />
+            )}
+          </WindowScroller>
         )}
-      </WindowScroller>
+      </InfiniteLoader>
     </div>
   );
 };
