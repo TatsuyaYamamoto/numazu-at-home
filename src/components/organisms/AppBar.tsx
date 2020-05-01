@@ -1,11 +1,15 @@
 import React, { FC } from "react";
-import { css, ThemeProps } from "styled-components";
+import styled, { css, ThemeProps } from "styled-components";
 
 import { default as MuiAppBar } from "@material-ui/core/AppBar";
 import { Toolbar, InputBase, Theme } from "@material-ui/core";
 import { fade } from "@material-ui/core/styles";
 
 import SearchIcon from "@material-ui/icons/Search";
+
+export const FixedAppBarMargin = styled.div`
+  margin-top: 64px;
+`;
 
 const Logo = () => {
   return <div>{`Numazu@Home`}</div>;
@@ -68,12 +72,15 @@ const SearchTextBox: FC = () => {
 
 const AppBar = () => {
   return (
-    <MuiAppBar position="fixed">
-      <Toolbar>
-        <Logo />
-        <SearchTextBox />
-      </Toolbar>
-    </MuiAppBar>
+    <>
+      <MuiAppBar position="fixed">
+        <Toolbar>
+          <Logo />
+          <SearchTextBox />
+        </Toolbar>
+      </MuiAppBar>
+      <FixedAppBarMargin />
+    </>
   );
 };
 
