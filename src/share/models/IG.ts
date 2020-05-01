@@ -28,7 +28,7 @@ export interface IGSharedData {
           shortcode: string;
           display_url: string;
           is_video: boolean;
-          taken_at_timestamp: string;
+          taken_at_timestamp: number;
           location: {
             id: string;
             name: string;

@@ -61,7 +61,7 @@ const onLoadIgHashtagRecentMedia = async (igMedia: IGHashtagRecentMedia) => {
     profile_pic_url,
     username,
   } = igShortcodeMedia.owner;
-  const timestamp = new Date(igShortcodeMedia.taken_at_timestamp);
+  const timestamp = new Date(igShortcodeMedia.taken_at_timestamp * 1000);
 
   const originalUserId = authorId;
   const userId = `${provider}|${originalUserId}`;
