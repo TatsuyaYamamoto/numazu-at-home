@@ -70,7 +70,7 @@ const SearchTextBox: FC = () => {
   );
 };
 
-const AppBar = () => {
+export const TopAppBar = () => {
   return (
     <>
       <MuiAppBar position="fixed">
@@ -83,5 +83,3 @@ const AppBar = () => {
     </>
   );
 };
-
-export default AppBar;

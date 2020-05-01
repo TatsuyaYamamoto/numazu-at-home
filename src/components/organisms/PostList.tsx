@@ -1,4 +1,6 @@
 import React, { FC, useEffect, useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/router";
+
 import { firestore } from "firebase";
 
 import {
@@ -31,6 +33,7 @@ interface PostListItemProps {
   timestamp: Date;
   mediaUrls: string[];
   text: string;
+  onClick: () => void;
   onMount: () => void;
 }
 const PostListItem: FC<PostListItemProps> = (props) => {
@@ -41,6 +44,7 @@ const PostListItem: FC<PostListItemProps> = (props) => {
     mediaUrls,
     text,
     onMount,
+    onClick,
   } = props;
 
   useEffect(() => {
@@ -50,8 +54,9 @@ const PostListItem: FC<PostListItemProps> = (props) => {
   return (
     <Card
       css={`
-        max-width: 345px;
+        max-width: 500px;
       `}
+      onClick={onClick}
     >
       <CardHeader
         avatar={
@@ -70,7 +75,8 @@ const PostListItem: FC<PostListItemProps> = (props) => {
       <CardMedia
         css={`
           height: 0;
-          padding-top: 56.25%; // 16:9
+          //padding-top: 56.25%; // 16:9
+          padding-top: 100%;
         `}
         // TODO support multiple media
         image={mediaUrls[0]}
@@ -111,6 +117,8 @@ interface Post {
 const PostList: FC = (props) => {
   const { ...others } = props;
   const { app: firebaseApp } = useFirebase();
+  const router = useRouter();
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [lastPostDocSnap, setLastPostDocSnap] = useState<
     firestore.QueryDocumentSnapshot | undefined
@@ -122,6 +130,13 @@ const PostList: FC = (props) => {
       return;
     }
   }, [firebaseApp]);
+
+  const onClickPost = (postId: string) => () => {
+    router.push({
+      pathname: "/post",
+      query: { id: postId },
+    });
+  };
 
   const rowRenderer: ListRowRenderer = ({ key, index, style, parent }) => {
     const post = posts[index];
@@ -141,6 +156,7 @@ const PostList: FC = (props) => {
             ) : (
               <PostListItem
                 key={post.id}
+                onClick={onClickPost(post.id)}
                 authorName={post.author}
                 authorProfileImageUrl={undefined}
                 timestamp={post.timestamp}
