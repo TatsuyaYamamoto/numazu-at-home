@@ -68,7 +68,7 @@ const SearchTextBox: FC = () => {
 
 const AppBar = () => {
   return (
-    <MuiAppBar position="static">
+    <MuiAppBar position="fixed">
       <Toolbar>
         <Logo />
         <SearchTextBox />

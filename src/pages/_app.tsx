@@ -14,6 +14,8 @@ import "firebase/auth";
 import "firebase/firestore";
 import "firebase/storage";
 
+import "react-virtualized/styles.css";
+
 const MyApp: FC<AppProps> = (props) => {
   const { Component, pageProps } = props;
 

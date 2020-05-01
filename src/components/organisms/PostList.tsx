@@ -1,6 +1,13 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useState, useMemo } from "react";
 import { firestore } from "firebase";
 
+import {
+  WindowScroller,
+  List,
+  ListRowRenderer,
+  CellMeasurer,
+  CellMeasurerCache,
+} from "react-virtualized";
 import {
   Avatar,
   Card,
@@ -21,6 +28,7 @@ interface PostListItemProps {
   timestamp: Date;
   mediaUrls: string[];
   text: string;
+  onMount: () => void;
 }
 const PostListItem: FC<PostListItemProps> = (props) => {
   const {
@@ -29,7 +37,12 @@ const PostListItem: FC<PostListItemProps> = (props) => {
     timestamp,
     mediaUrls,
     text,
+    onMount,
   } = props;
+
+  useEffect(() => {
+    onMount();
+  }, []);
 
   return (
     <Card
@@ -92,7 +105,8 @@ interface Post {
   createdAt: firestore.FieldValue;
 }
 
-const PostList: FC = () => {
+const PostList: FC = (props) => {
+  const { ...others } = props;
   const { app: firebaseApp } = useFirebase();
   const [posts, setPosts] = useState<Post[]>([]);
 
@@ -120,18 +134,67 @@ const PostList: FC = () => {
     })();
   }, [firebaseApp]);
 
+  const rowRenderer: ListRowRenderer = ({ key, index, style, parent }) => {
+    const post = posts[index];
+
+    return (
+      <CellMeasurer
+        key={key}
+        cache={cellMeasurerCache}
+        parent={parent}
+        rowIndex={index}
+      >
+        {({ registerChild, measure }) => (
+          // @ts-ignore
+          <div ref={registerChild} style={style}>
+            {!post ? (
+              <div key={index}>loading...</div>
+            ) : (
+              <PostListItem
+                key={post.id}
+                authorName={post.author}
+                authorProfileImageUrl={undefined}
+                timestamp={post.timestamp}
+                mediaUrls={post.mediaUrls}
+                text={post.text}
+                onMount={measure}
+              />
+            )}
+          </div>
+        )}
+      </CellMeasurer>
+    );
+  };
+
+  const rowCount = useMemo(() => Math.max(posts.length, 10), [posts]);
+
+  const cellMeasurerCache = useMemo(
+    () =>
+      new CellMeasurerCache({
+        defaultHeight: 50,
+        fixedWidth: true,
+      }),
+    []
+  );
+
   return (
-    <div>
-      {posts.map((post) => (
-        <PostListItem
-          key={post.id}
-          authorName={post.author}
-          authorProfileImageUrl={undefined}
-          timestamp={post.timestamp}
-          mediaUrls={post.mediaUrls}
-          text={post.text}
-        />
-      ))}
+    <div {...others}>
+      <WindowScroller>
+        {({ height, width, scrollTop, isScrolling }) => (
+          <List
+            height={height}
+            autoHeight={true}
+            width={width}
+            autoWidth={true}
+            isScrolling={isScrolling}
+            // onScroll={onChildScroll}
+            scrollTop={scrollTop}
+            rowCount={rowCount}
+            rowHeight={cellMeasurerCache.rowHeight}
+            rowRenderer={rowRenderer}
+          />
+        )}
+      </WindowScroller>
     </div>
   );
 };
