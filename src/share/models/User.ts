@@ -1,7 +1,7 @@
 import { firestore } from "firebase";
 import { Provider } from "./types";
 
-interface UserDocument extends firestore.DocumentData {
+export interface UserDocument extends firestore.DocumentData {
   id: string;
   originalId: string;
   provider: Provider;
@@ -21,4 +21,9 @@ interface UserDocument extends firestore.DocumentData {
   createdAt: firestore.FieldValue;
 }
 
-export default UserDocument;
+export interface User {
+  id: string;
+  displayName: string;
+  userName: string;
+  profileImageUrl: string;
+}

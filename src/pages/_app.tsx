@@ -2,6 +2,8 @@ import { FC, useEffect } from "react";
 import { AppProps } from "next/app";
 import Head from "next/head";
 
+import { Provider } from "react-redux";
+
 import { ThemeProvider as MuiThemeProvider } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { ThemeProvider as SCThemeProvider } from "styled-components";
@@ -9,6 +11,7 @@ import { ThemeProvider as SCThemeProvider } from "styled-components";
 import { FirebaseContextProvider } from "../components/hooks/useFirebase";
 import theme from "../theme";
 import config from "../config";
+import { store } from "../modules/store";
 
 import "firebase/auth";
 import "firebase/firestore";
@@ -34,18 +37,20 @@ const MyApp: FC<AppProps> = (props) => {
           content="minimum-scale=1, initial-scale=1, width=device-width"
         />
       </Head>
-      <SCThemeProvider theme={theme}>
-        <MuiThemeProvider theme={theme}>
-          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-          <CssBaseline />
+      <Provider store={store}>
+        <SCThemeProvider theme={theme}>
+          <MuiThemeProvider theme={theme}>
+            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+            <CssBaseline />
 
-          <FirebaseContextProvider
-            initParams={{ options: config.firebaseConfigs }}
-          >
-            <Component {...pageProps} />
-          </FirebaseContextProvider>
-        </MuiThemeProvider>
-      </SCThemeProvider>
+            <FirebaseContextProvider
+              initParams={{ options: config.firebaseConfigs }}
+            >
+              <Component {...pageProps} />
+            </FirebaseContextProvider>
+          </MuiThemeProvider>
+        </SCThemeProvider>
+      </Provider>
     </>
   );
 };

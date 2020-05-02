@@ -1,4 +1,5 @@
-import React, { FC, useEffect, useState, useMemo, useCallback } from "react";
+import React, { FC, useEffect, useMemo, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 
 import { firestore } from "firebase";
@@ -24,8 +25,11 @@ import {
 import { red } from "@material-ui/core/colors";
 
 import useFirebase from "../hooks/useFirebase";
-import PostDocument, { MediaType } from "../../share/models/Post";
-import { Provider } from "../../share/models/types";
+import { User } from "../../share/models/User";
+import { PostDocument, Post } from "../../share/models/Post";
+import { RootState } from "../../modules/store";
+import { importPostDocs } from "../../modules/entities";
+import displaySlice from "../../modules/display";
 
 interface PostListItemProps {
   authorName: string;
@@ -36,6 +40,7 @@ interface PostListItemProps {
   onClick: () => void;
   onMount: () => void;
 }
+
 const PostListItem: FC<PostListItemProps> = (props) => {
   const {
     authorName,
@@ -101,29 +106,43 @@ const PostListItem: FC<PostListItemProps> = (props) => {
   );
 };
 
-interface Post {
-  id: string;
-  originalId: string;
-  provider: Provider;
-  author: string;
-  text: string;
-  timestamp: Date;
-  mediaType: MediaType;
-  mediaUrls: string[];
-  deleted: boolean;
-  createdAt: firestore.FieldValue;
-}
+type RecentPost = Post & {
+  author: User;
+};
+
+const postListSelector = (state: RootState): RecentPost[] => {
+  const { entities, display } = state;
+  const recentPosts: RecentPost[] = [];
+
+  for (const postId of display.recentPost.ids) {
+    const post = entities.posts[postId];
+    if (!post) {
+      continue;
+    }
+    const { authorId } = post;
+
+    const author = entities.users[authorId];
+    if (!author) {
+      continue;
+    }
+
+    recentPosts.push({
+      ...post,
+      author,
+    });
+  }
+  return recentPosts;
+};
 
 const PostList: FC = (props) => {
   const { ...others } = props;
   const { app: firebaseApp } = useFirebase();
   const router = useRouter();
-
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [lastPostDocSnap, setLastPostDocSnap] = useState<
-    firestore.QueryDocumentSnapshot | undefined
-  >();
-  const [hasMoreItem, setHasMoreItem] = useState(true);
+  const dispatch = useDispatch();
+  const recentPosts = useSelector(postListSelector);
+  const { hasMoreItem, lastPostDocId } = useSelector(
+    ({ display }: RootState) => display.recentPost
+  );
 
   useEffect(() => {
     if (!firebaseApp) {
@@ -139,7 +158,7 @@ const PostList: FC = (props) => {
   };
 
   const rowRenderer: ListRowRenderer = ({ key, index, style, parent }) => {
-    const post = posts[index];
+    const post = recentPosts[index];
 
     return (
       <CellMeasurer
@@ -157,8 +176,8 @@ const PostList: FC = (props) => {
               <PostListItem
                 key={post.id}
                 onClick={onClickPost(post.id)}
-                authorName={post.author}
-                authorProfileImageUrl={undefined}
+                authorName={post.author.displayName}
+                authorProfileImageUrl={post.author.profileImageUrl}
                 timestamp={post.timestamp}
                 mediaUrls={post.mediaUrls}
                 text={post.text}
@@ -181,17 +200,18 @@ const PostList: FC = (props) => {
   );
 
   const rowCount = useMemo(
-    () => (hasMoreItem && firebaseApp ? posts.length + 5 : posts.length),
-    [hasMoreItem, posts, firebaseApp]
+    () =>
+      hasMoreItem && firebaseApp ? recentPosts.length + 5 : recentPosts.length,
+    [hasMoreItem, recentPosts, firebaseApp]
   );
 
   const isRowLoaded = ({ index }: Index): boolean => {
-    return !!posts[index];
+    return !!recentPosts[index];
   };
 
   const loadMoreRows = useCallback(
     async ({ startIndex, stopIndex }: IndexRange): Promise<any> => {
-      console.log("loadMoreRows", startIndex, stopIndex);
+      console.log("loadMoreRows", startIndex, stopIndex, lastPostDocId);
 
       if (!firebaseApp) {
         console.warn("FirebaseApp is not initialized.");
@@ -206,31 +226,31 @@ const PostList: FC = (props) => {
 
       let query = postColRef.orderBy("timestamp", "desc").limit(limit);
 
-      if (lastPostDocSnap) {
+      if (lastPostDocId) {
+        const lastPostDocSnap = await postColRef.doc(lastPostDocId).get();
         query = query.startAfter(lastPostDocSnap);
       }
 
       const postQuerySnap = await query.get();
 
       if (postQuerySnap.empty) {
-        setHasMoreItem(false);
+        dispatch(displaySlice.actions.notifyNoMoreRecentPost({}));
         return;
       }
 
-      const loadedPosts = postQuerySnap.docs.map((doc) => {
-        return {
-          ...doc.data(),
-          id: doc.id,
-          author: "TODO",
-          timestamp: doc.data().timestamp.toDate(),
-        };
+      const recentPostIds: string[] = [];
+      const recentPostDocs: PostDocument[] = [];
+
+      postQuerySnap.forEach((doc) => {
+        const docData = doc.data();
+        recentPostIds.push(docData.id);
+        recentPostDocs.push(docData);
       });
 
-      setLastPostDocSnap(postQuerySnap.docs[postQuerySnap.size - 1]);
-
-      setPosts((prev) => [...prev, ...loadedPosts]);
+      dispatch(importPostDocs(recentPostDocs));
+      dispatch(displaySlice.actions.pushRecentPosts({ ids: recentPostIds }));
     },
-    [firebaseApp, lastPostDocSnap, hasMoreItem]
+    [firebaseApp, lastPostDocId, lastPostDocId, dispatch]
   );
 
   return (

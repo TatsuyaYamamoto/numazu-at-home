@@ -1,12 +1,12 @@
 import { firestore } from "firebase/app";
 import { firestore as firebaseAdmin } from "firebase-admin";
 
-import UserDocument from "./User";
+import { UserDocument } from "./User";
 import { Provider } from "./types";
 
 export type MediaType = "image" | "video";
 
-interface PostDocument extends firestore.DocumentData {
+export interface PostDocument extends firestore.DocumentData {
   id: string;
   originalId: string;
   provider: Provider;
@@ -21,4 +21,10 @@ interface PostDocument extends firestore.DocumentData {
   createdAt: firestore.FieldValue;
 }
 
-export default PostDocument;
+export interface Post {
+  id: string;
+  authorId: string;
+  text: string;
+  timestamp: Date;
+  mediaUrls: string[];
+}

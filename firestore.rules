@@ -8,5 +8,8 @@ service cloud.firestore {
     match /posts/{postId} {
     	allow read;
     }
+    match /users/{postId} {
+        allow read;
+    }
   }
 }
