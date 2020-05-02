@@ -23,11 +23,11 @@ export interface EntitiesState {
   /**
    * {@see Item} Objectのmap
    */
-  posts: { [id: string]: Post };
+  posts: { [id: string]: Post | undefined };
   /**
    * {@see Category} Objectのmap
    */
-  users: { [id: string]: User };
+  users: { [id: string]: User | undefined };
 }
 
 /*******************************************************************************
