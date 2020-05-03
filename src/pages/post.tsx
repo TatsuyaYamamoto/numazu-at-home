@@ -44,6 +44,10 @@ const PostPage: NextPage = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, []);
+
+  useEffect(() => {
     if (!firebaseApp) {
       console.warn("FirebaseApp is not initialized.");
       return;
