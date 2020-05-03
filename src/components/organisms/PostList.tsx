@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useCallback } from "react";
+import React, { FC, useEffect, useMemo, useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 
@@ -25,12 +25,15 @@ import {
 import { red } from "@material-ui/core/colors";
 
 import useFirebase from "../hooks/useFirebase";
-import { User } from "../../share/models/User";
-import { PostDocument, Post } from "../../share/models/Post";
+import Container from "../atoms/Container";
+
 import { RootState } from "../../modules/store";
 import { importPostDocs } from "../../modules/entities";
 import displaySlice from "../../modules/display";
-import Container from "../atoms/Container";
+import { User } from "../../share/models/User";
+import { PostDocument, Post } from "../../share/models/Post";
+
+import { dateFormat } from "../../helper/format";
 
 interface PostListItemProps {
   authorName: string;
@@ -57,6 +60,9 @@ const PostListItem: FC<PostListItemProps> = (props) => {
     onMount();
   }, []);
 
+  const [now] = useState(new Date());
+  const [formattedNow] = useState(dateFormat(now, timestamp));
+
   return (
     <Card
       css={`
@@ -77,7 +83,7 @@ const PostListItem: FC<PostListItemProps> = (props) => {
           </Avatar>
         }
         title={authorName}
-        subheader={timestamp.toISOString()}
+        subheader={formattedNow}
       />
       <CardMedia
         css={`

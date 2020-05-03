@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from "react";
+import React, { FC, useMemo, useState } from "react";
 
 import {
   Avatar,
@@ -10,6 +10,7 @@ import {
 } from "@material-ui/core";
 import { red } from "@material-ui/core/colors";
 import Container from "../atoms/Container";
+import { dateFormat } from "../../helper/format";
 
 interface PostDetailProps {
   authorName: string;
@@ -27,6 +28,9 @@ const PostDetail: FC<PostDetailProps> = (props) => {
     mediaUrls,
     text,
   } = props;
+
+  const [now] = useState(new Date());
+  const [formattedNow] = useState(dateFormat(now, timestamp));
 
   const linkableText = useMemo(() => {
     // https://stackoverflow.com/questions/24083983/detecting-hashtags-and-in-string
@@ -79,7 +83,7 @@ const PostDetail: FC<PostDetailProps> = (props) => {
             </Avatar>
           }
           title={authorName}
-          subheader={timestamp.toISOString()}
+          subheader={formattedNow}
         />
         <CardMedia
           css={`
