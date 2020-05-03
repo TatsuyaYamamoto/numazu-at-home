@@ -4,7 +4,7 @@ const takeoutUrl = `https://numazukanko.jp/feature/cheer-for-numazu/top`;
 
 const helps = [
   {
-    title: "このアプリはなんですか？",
+    title: "このWebサイトはなんですか？",
     body: `
 &emsp;沼津市が立ち上げた"<a href="${takeoutUrl}" target="_blank">テイクアウト de ステイホーム</a>"がより盛り上がることを願って<a href="${t28TwitterUrl}" target="_blank">有志</a>が作成した、<b>非公式アプリ</b>です。
 "#おうちでぬまづ"ハッシュタグがついたInstagramの投稿を引用し、新着順に見ることが出来ます。
@@ -35,7 +35,7 @@ const helps = [
 `.trim(),
   },
   {
-    title: "お店の利用者(沼津を支える人)は、どのように使うのですか？",
+    title: "お店の利用者は、どのように使うのですか？",
     body: `
 &emsp;新しい投稿（お店・商品）を見つけて、買って、シェアして、沼津を応援しましょう！
 
@@ -45,20 +45,20 @@ const helps = [
   {
     title: "料金等は、どのようになっていますか？",
     body: `
-&emsp;このアプリ今後も含めたどのような機能に対しても<b>無料で使用できます</b>。また<b>広告の設置も行いません</b>。
+&emsp;このWebサイトはどのような機能に対しても、<b>無料で使用できます</b>。また<b>広告の設置も行いません</b>。
 `,
   },
   {
     title: "投稿コンテンツの扱いは、どのようになっていますか？",
     body: `
-&emsp;Numazu@Homeは、ハッシュタグがついた投稿を<b>引用・表示するアプリ</b>です。
+&emsp;Numazu@Homeは、ハッシュタグがついた投稿を<b>引用・表示するWebサイト</b>です。
 Instagramに投稿された<b>コンテンツの所有者は投稿者にあります</b>。Instagramの規約を尊重し、所有者から削除を求められたユーザーコンテンツまたはその他の情報を削除します。
 `,
   },
   {
-    title: "アプリに関する問い合わせは、どのように行うのですか？",
+    title: "Numazu@Homeに関する問い合わせは、どのように行うのですか？",
     body: `
-アプリ開発者(<a href="${t28TwitterUrl}" target="_blank">@T28_tatsuya</a>)までDM、または<a href="${contactUrl}" target="_blank">問い合わせフォーム</a>からご連絡ください。
+開発者(<a href="${t28TwitterUrl}" target="_blank">@T28_tatsuya</a>)までDM、または<a href="${contactUrl}" target="_blank">問い合わせフォーム</a>からご連絡ください。
 `.trim(),
   },
 ];
