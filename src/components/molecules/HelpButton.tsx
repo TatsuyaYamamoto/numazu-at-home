@@ -4,7 +4,7 @@ import { IconButton } from "@material-ui/core";
 import { HelpOutline as HelpIcon } from "@material-ui/icons";
 
 export interface HelpButtonProps {
-  onClick: () => void;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export const HelpButton: FC<HelpButtonProps> = (props) => {

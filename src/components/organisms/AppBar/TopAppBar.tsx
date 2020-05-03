@@ -16,19 +16,25 @@ export const FixedAppBarMargin = styled.div`
 export const TopAppBar: FC = () => {
   const router = useRouter();
 
-  const onClickHelp = () => {
+  const onClickHelp = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
     router.push(`/help`);
   };
 
-  const showHelpButton = !router.asPath.startsWith("/help");
+  const onClickAppBar = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <>
       <MuiAppBar position="fixed">
-        <Toolbar>
+        <Toolbar onClick={onClickAppBar}>
           <Logo />
           <FlexSpace />
-          {showHelpButton && <HelpButton onClick={onClickHelp} />}
+          <HelpButton onClick={onClickHelp} />
         </Toolbar>
       </MuiAppBar>
       <FixedAppBarMargin />
