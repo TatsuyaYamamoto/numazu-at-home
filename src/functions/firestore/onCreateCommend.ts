@@ -3,8 +3,8 @@ import { EventContext } from "firebase-functions";
 import fetch from "node-fetch";
 import { JSDOM } from "jsdom";
 
-import UserDocument from "../../share/models/User";
-import PostDocument from "../../share/models/Post";
+import { UserDocument } from "../../share/models/User";
+import { PostDocument } from "../../share/models/Post";
 import { IGHashtagRecentMedia, IGSharedData } from "../../share/models/IG";
 import { CommandDocument } from "../../share/models/Command";
 
