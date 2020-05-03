@@ -184,7 +184,7 @@ const PostList: FC = (props) => {
               <PostListItem
                 key={post.id}
                 onClick={onClickPost(post.id)}
-                authorName={post.author.displayName}
+                authorName={post.author.displayName || post.author.userName}
                 authorProfileImageUrl={post.author.profileImageUrl}
                 timestamp={post.timestamp}
                 mediaUrls={post.mediaUrls}

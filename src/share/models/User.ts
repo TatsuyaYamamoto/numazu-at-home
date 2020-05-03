@@ -10,20 +10,20 @@ export interface UserDocument extends firestore.DocumentData {
    * instagram: (perhaps) name/graph api  full_name/instagram api
    * twitter: name  https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/user-object
    */
-  displayName: string;
+  displayName?: string;
 
   /**
    * instagram: username https://developers.facebook.com/docs/instagram-api/reference/user
    * twitter: screen_name https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/user-object
    */
-  useName: string;
+  userName: string;
   profileImageUrl: string;
   createdAt: firestore.FieldValue;
 }
 
 export interface User {
   id: string;
-  displayName: string;
+  displayName?: string;
   userName: string;
   profileImageUrl: string;
 }

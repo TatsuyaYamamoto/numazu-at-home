@@ -86,7 +86,7 @@ const PostPage: NextPage = () => {
     <>
       <InternalAppBar showBackArrow={true} title={`投稿`} />
       <PostDetail
-        authorName={user.displayName}
+        authorName={user.displayName || user.userName}
         authorProfileImageUrl={user.profileImageUrl}
         timestamp={post.timestamp}
         mediaUrls={post.mediaUrls}

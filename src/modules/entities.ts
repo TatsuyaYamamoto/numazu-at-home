@@ -64,7 +64,7 @@ export const importPostDocs = (
     users[author.id] = {
       id: author.id,
       displayName: author.displayName,
-      userName: author.username,
+      userName: author.userName,
       profileImageUrl: author.profileImageUrl,
     };
   }

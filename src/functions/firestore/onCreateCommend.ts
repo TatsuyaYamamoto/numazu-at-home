@@ -77,7 +77,7 @@ const onLoadIgHashtagRecentMedia = async (igMedia: IGHashtagRecentMedia) => {
       originalId: originalUserId,
       provider: "instagram",
       displayName: full_name,
-      useName: username,
+      userName: username,
       profileImageUrl: profile_pic_url,
       createdAt: firestore.FieldValue.serverTimestamp(),
     };
