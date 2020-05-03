@@ -5,8 +5,10 @@ import { firestore } from "firebase-admin";
 import config from "../../config.functions";
 import { IGHashtagRecentMedia, IGPaging } from "../../share/models/IG";
 import { CommandDocument, CommandType } from "../../share/models/Command";
+import { PostDocument } from "../../share/models/Post";
 
 export type CommandColRef = firestore.CollectionReference<CommandDocument>;
+export type PostColRef = firestore.CollectionReference<PostDocument>;
 
 const router = express.Router();
 
@@ -44,8 +46,16 @@ const searchMediasByHashtag = async (): Promise<IGHashtagRecentMedia[]> => {
   return medias;
 };
 
+const isPostExisting = async (docId: string): Promise<boolean> => {
+  const postColRef = firestore().collection("posts") as PostColRef;
+
+  const snap = await postColRef.doc(docId).get();
+  return snap.exists;
+};
+
 router.post("/load_ig_hashtag_recent_media", (_, res, next) => {
   const commandColRef = firestore().collection("commands") as CommandColRef;
+
   const newCommandDocRef = commandColRef.doc();
   const commandDataColRef = newCommandDocRef.collection("data");
   const commandType: CommandType = "LOAD_IG_HASHTAG_RECENT_MEDIA";
@@ -63,19 +73,31 @@ router.post("/load_ig_hashtag_recent_media", (_, res, next) => {
       createdAt: firestore.FieldValue.serverTimestamp(),
     });
 
+    let persistedCount = 0;
+    let ignoredCount = 0;
+
     for (const igMedia of igHashtagRecentMedias) {
       const originalPostId = igMedia.id;
-      const dataId = `instagram|${originalPostId}`;
-      const commandDataDocRef = commandDataColRef.doc(dataId);
+      const postId = `instagram|${originalPostId}`;
 
-      batch.set(commandDataDocRef, igMedia, {});
+      if (await isPostExisting(postId)) {
+        ignoredCount++;
+      } else {
+        persistedCount++;
+
+        const commandDataDocRef = commandDataColRef.doc(postId);
+        batch.set(commandDataDocRef, igMedia, {});
+      }
     }
 
     await batch.commit();
 
     res.json({
       ok: true,
-      igHashtagRecentMediasSize,
+      count: {
+        ignored: ignoredCount,
+        persisted: persistedCount,
+      },
     });
   })().catch(next);
 });
