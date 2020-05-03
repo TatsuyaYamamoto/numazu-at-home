@@ -30,6 +30,7 @@ import { PostDocument, Post } from "../../share/models/Post";
 import { RootState } from "../../modules/store";
 import { importPostDocs } from "../../modules/entities";
 import displaySlice from "../../modules/display";
+import Container from "../atoms/Container";
 
 interface PostListItemProps {
   authorName: string;
@@ -60,6 +61,7 @@ const PostListItem: FC<PostListItemProps> = (props) => {
     <Card
       css={`
         max-width: 500px;
+        margin: 0 auto;
       `}
       onClick={onClick}
     >
@@ -168,8 +170,14 @@ const PostList: FC = (props) => {
         rowIndex={index}
       >
         {({ registerChild, measure }) => (
-          // @ts-ignore
-          <div ref={registerChild} style={style}>
+          <div
+            // @ts-ignore
+            ref={registerChild}
+            style={{
+              ...style,
+              padding: "10px 3px",
+            }}
+          >
             {!post ? (
               <div key={index}>loading...</div>
             ) : (
@@ -255,31 +263,33 @@ const PostList: FC = (props) => {
 
   return (
     <div {...others}>
-      <InfiniteLoader
-        isRowLoaded={isRowLoaded}
-        loadMoreRows={loadMoreRows}
-        rowCount={rowCount}
-      >
-        {({ onRowsRendered }) => (
-          <WindowScroller>
-            {({ height, width, scrollTop, isScrolling }) => (
-              <List
-                height={height}
-                autoHeight={true}
-                width={width}
-                autoWidth={true}
-                isScrolling={isScrolling}
-                // onScroll={onChildScroll}
-                onRowsRendered={onRowsRendered}
-                scrollTop={scrollTop}
-                rowCount={rowCount}
-                rowHeight={cellMeasurerCache.rowHeight}
-                rowRenderer={rowRenderer}
-              />
-            )}
-          </WindowScroller>
-        )}
-      </InfiniteLoader>
+      <Container>
+        <InfiniteLoader
+          isRowLoaded={isRowLoaded}
+          loadMoreRows={loadMoreRows}
+          rowCount={rowCount}
+        >
+          {({ onRowsRendered }) => (
+            <WindowScroller>
+              {({ height, width, scrollTop, isScrolling }) => (
+                <List
+                  height={height}
+                  autoHeight={true}
+                  width={width}
+                  autoWidth={true}
+                  isScrolling={isScrolling}
+                  // onScroll={onChildScroll}
+                  onRowsRendered={onRowsRendered}
+                  scrollTop={scrollTop}
+                  rowCount={rowCount}
+                  rowHeight={cellMeasurerCache.rowHeight}
+                  rowRenderer={rowRenderer}
+                />
+              )}
+            </WindowScroller>
+          )}
+        </InfiniteLoader>
+      </Container>
     </div>
   );
 };

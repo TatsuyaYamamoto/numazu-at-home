@@ -9,6 +9,7 @@ import {
   Typography,
 } from "@material-ui/core";
 import { red } from "@material-ui/core/colors";
+import Container from "../atoms/Container";
 
 interface PostDetailProps {
   authorName: string;
@@ -28,47 +29,51 @@ const PostDetail: FC<PostDetailProps> = (props) => {
   } = props;
 
   return (
-    <Card
-      css={`
-        //max-width: 345px;
-      `}
-      elevation={0}
-    >
-      <CardHeader
-        avatar={
-          <Avatar
-            css={`
-              background-color: ${red[500]};
-            `}
-            src={authorProfileImageUrl}
-          >
-            {!authorProfileImageUrl && authorName[0]}
-          </Avatar>
-        }
-        title={authorName}
-        subheader={timestamp.toISOString()}
-      />
-      <CardMedia
+    <Container>
+      <Card
         css={`
-          width: 100%;
-          //height: 0;
-          padding-top: 100%; // 16:9
+          //max-width: 345px;
         `}
-        // TODO support multiple media
-        image={mediaUrls[0]}
-        title="Paella dish"
-      />
-      <CardContent>
-        <Typography
-          variant="body2"
-          color="textSecondary"
-          component="p"
-          css={``}
-        >
-          {text}
-        </Typography>
-      </CardContent>
-    </Card>
+        elevation={0}
+      >
+        <CardHeader
+          avatar={
+            <Avatar
+              css={`
+                background-color: ${red[500]};
+              `}
+              src={authorProfileImageUrl}
+            >
+              {!authorProfileImageUrl && authorName[0]}
+            </Avatar>
+          }
+          title={authorName}
+          subheader={timestamp.toISOString()}
+        />
+        <CardMedia
+          css={`
+            width: 100%;
+            //height: 0;
+            padding-top: 100%; // 16:9
+          `}
+          // TODO support multiple media
+          image={mediaUrls[0]}
+          title="Paella dish"
+        />
+        <CardContent>
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            component="p"
+            css={`
+              white-space: pre-wrap;
+            `}
+          >
+            {text}
+          </Typography>
+        </CardContent>
+      </Card>
+    </Container>
   );
 };
 

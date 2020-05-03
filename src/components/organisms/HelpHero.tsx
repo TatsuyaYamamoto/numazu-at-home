@@ -12,6 +12,7 @@ import {
 import Logo from "../atoms/Logo";
 import BackArrowButton from "../molecules/BackArrowButton";
 import AppVersion from "../atoms/AppVersion";
+import Container from "../atoms/Container";
 
 const backgroundColor = css`
   background-color: ${({ theme }) => theme.palette.primary.main};
@@ -64,14 +65,16 @@ const HelpHero: FC = () => {
         <AppVersion />
       </LogoArea>
 
-      <CatchCopy>
-        <Typography>{`Support your "テイクアウト de ステイホーム"`}</Typography>
-      </CatchCopy>
-      <Description>
-        <Typography>
-          {`Numazu@Homeは、「沼津」と「沼津のお店」と「沼津のお店を利用する皆さん」をサポートするアプリです。`}
-        </Typography>
-      </Description>
+      <Container>
+        <CatchCopy>
+          <Typography>{`Support your "テイクアウト de ステイホーム"`}</Typography>
+        </CatchCopy>
+        <Description>
+          <Typography>
+            {`Numazu@Homeは、「沼津」と「沼津のお店」と「沼津のお店を利用する皆さん」をサポートするアプリです。`}
+          </Typography>
+        </Description>
+      </Container>
     </Root>
   );
 };

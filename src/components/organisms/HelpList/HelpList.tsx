@@ -6,6 +6,7 @@ import { Theme } from "@material-ui/core";
 import HelpListItem from "./HelpListItem";
 
 import helps from "../../../assets/helps";
+import Container from "../../atoms/Container";
 
 const Root = styled.div<{ theme: Theme }>``;
 
@@ -14,9 +15,11 @@ const HelpList: FC = (props) => {
 
   return (
     <Root {...others}>
-      {helps.map((help, index) => (
-        <HelpListItem key={index} title={help.title} body={help.body} />
-      ))}
+      <Container>
+        {helps.map((help, index) => (
+          <HelpListItem key={index} title={help.title} body={help.body} />
+        ))}
+      </Container>
     </Root>
   );
 };
