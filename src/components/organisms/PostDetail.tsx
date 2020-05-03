@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, useMemo } from "react";
 
 import {
   Avatar,
@@ -28,14 +28,45 @@ const PostDetail: FC<PostDetailProps> = (props) => {
     text,
   } = props;
 
+  const linkableText = useMemo(() => {
+    // https://stackoverflow.com/questions/24083983/detecting-hashtags-and-in-string
+    // https://github.com/textlint-ja/textlint-rule-preset-JTF-style/issues/1#issuecomment-145887697
+    const hashtagPattern = /#([A-Za-z0-9\-\.\_]|[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|[\uD840-\uD87F][\uDC00-\uDFFF]|[ぁ-んァ-ヶー])+/g;
+    const hashtags = text.match(hashtagPattern);
+
+    // https://stackoverflow.com/questions/24083983/detecting-hashtags-and-in-string
+    const urlPattern = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+    const urls = text.match(urlPattern);
+
+    let replaced = text;
+    if (hashtags) {
+      hashtags.forEach((hashtag) => {
+        const patten = new RegExp(`${hashtag}(\\s|$)`);
+        const url = `https://www.instagram.com/explore/tags/${hashtag.replace(
+          "#",
+          ""
+        )}/`;
+        replaced = replaced.replace(
+          patten,
+          `<a href="${url}" target="_blank">${hashtag}</a>`
+        );
+      });
+    }
+    if (urls) {
+      urls.forEach((url) => {
+        replaced = replaced.replace(
+          url,
+          `<a href="${url}" target="_blank">${url}</a>`
+        );
+      });
+    }
+
+    return replaced;
+  }, [text]);
+
   return (
     <Container>
-      <Card
-        css={`
-          //max-width: 345px;
-        `}
-        elevation={0}
-      >
+      <Card css={``} elevation={0}>
         <CardHeader
           avatar={
             <Avatar
@@ -67,10 +98,14 @@ const PostDetail: FC<PostDetailProps> = (props) => {
             component="p"
             css={`
               white-space: pre-wrap;
+
+              & > a {
+                text-decoration: none;
+                margin: 0 2px;
+              }
             `}
-          >
-            {text}
-          </Typography>
+            dangerouslySetInnerHTML={{ __html: linkableText }}
+          />
         </CardContent>
       </Card>
     </Container>
