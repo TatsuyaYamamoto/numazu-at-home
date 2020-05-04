@@ -5,16 +5,38 @@ import { useRouter } from "next/router";
 
 import { firestore } from "firebase";
 
+import { Button, SvgIcon } from "@material-ui/core";
+import styled from "styled-components";
+
+// @ts-ignore
+import InstagramBrand from "../components/atoms/svg/instagram-brands.svg";
 import { InternalAppBar } from "../components/organisms/AppBar";
 import PostDetail from "../components/organisms/PostDetail/PostDetail";
 import useFirebase from "../components/hooks/useFirebase";
+import PostDetailLoading from "../components/organisms/PostDetail/PostDetailLoading";
+import TwitterShareButton from "../components/molecules/ShareButton/TwitterShareButton";
+import { primaryBackground } from "../components/helper/styles";
+import Container from "../components/atoms/Container";
 
 import { Post, PostDocument } from "../share/models/Post";
 import { User } from "../share/models/User";
 import { RootState } from "../modules/store";
-
 import { importPostDocs } from "../modules/entities";
-import PostDetailLoading from "../components/organisms/PostDetail/PostDetailLoading";
+
+const Actions = styled.div`
+  margin-top: 40px;
+  margin-bottom: 40px;
+`;
+
+const ShareActions = styled.div`
+  text-align: center;
+  margin: 20px 0;
+`;
+
+const SourceLinkActions = styled.div`
+  text-align: center;
+  margin: 20px 0;
+`;
 
 const detailSelector = (id: string | null) => (
   state: RootState
@@ -81,21 +103,44 @@ const PostPage: NextPage = () => {
   if (detail) {
     const { user, post } = detail;
     body = (
-      <PostDetail
-        authorName={user.displayName || user.userName}
-        authorProfileImageUrl={user.profileImageUrl}
-        timestamp={post.timestamp}
-        mediaUrls={post.mediaUrls}
-        text={post.text}
-        sourceUrl={post.sourceUrl}
-      />
+      <>
+        <PostDetail
+          authorName={user.displayName || user.userName}
+          authorProfileImageUrl={user.profileImageUrl}
+          timestamp={post.timestamp}
+          mediaUrls={post.mediaUrls}
+          text={post.text}
+        />
+        <Actions>
+          <ShareActions>
+            <TwitterShareButton text={"hogehoge"} url={location.href} />
+          </ShareActions>
+
+          <SourceLinkActions>
+            <Button
+              href={post.sourceUrl}
+              startIcon={
+                <SvgIcon>
+                  <InstagramBrand />
+                </SvgIcon>
+              }
+              css={`
+                ${primaryBackground}
+              `}
+              target="__blank"
+              color="primary"
+              variant="contained"
+            >{`この投稿のページへ`}</Button>
+          </SourceLinkActions>
+        </Actions>
+      </>
     );
   }
 
   return (
     <>
       <InternalAppBar showBackArrow={true} title={`投稿`} />
-      {body}
+      <Container>{body}</Container>
     </>
   );
 };

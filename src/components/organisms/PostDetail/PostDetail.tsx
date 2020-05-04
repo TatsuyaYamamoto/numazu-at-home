@@ -2,7 +2,6 @@ import React, { FC, useMemo, useState } from "react";
 
 import {
   Avatar,
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -10,16 +9,8 @@ import {
   Typography,
 } from "@material-ui/core";
 import { red } from "@material-ui/core/colors";
-import styled from "styled-components";
 
-import Container from "../../atoms/Container";
 import { dateFormat } from "../../../helper/format";
-import { primaryBackground } from "../../helper/styles";
-
-const ActionArea = styled.div`
-  margin: 20px 0;
-  text-align: center;
-`;
 
 interface PostDetailProps {
   authorName: string;
@@ -27,7 +18,6 @@ interface PostDetailProps {
   timestamp: Date;
   mediaUrls: string[];
   text: string;
-  sourceUrl: string;
 }
 
 const PostDetail: FC<PostDetailProps> = (props) => {
@@ -37,7 +27,6 @@ const PostDetail: FC<PostDetailProps> = (props) => {
     timestamp,
     mediaUrls,
     text,
-    sourceUrl,
   } = props;
 
   const [now] = useState(new Date());
@@ -80,62 +69,48 @@ const PostDetail: FC<PostDetailProps> = (props) => {
   }, [text]);
 
   return (
-    <Container>
-      <Card css={``} elevation={0}>
-        <CardHeader
-          avatar={
-            <Avatar
-              css={`
-                background-color: ${red[500]};
-              `}
-              src={authorProfileImageUrl}
-            >
-              {!authorProfileImageUrl && authorName[0]}
-            </Avatar>
-          }
-          title={authorName}
-          subheader={formattedNow}
-        />
-        <CardMedia
-          css={`
-            width: 100%;
-            //height: 0;
-            padding-top: 100%; // 16:9
-          `}
-          // TODO support multiple media
-          image={mediaUrls[0]}
-          title="Paella dish"
-        />
-        <CardContent>
-          <Typography
-            variant="body2"
-            color="textSecondary"
-            component="p"
+    <Card css={``} elevation={0}>
+      <CardHeader
+        avatar={
+          <Avatar
             css={`
-              white-space: pre-wrap;
-
-              & > a {
-                text-decoration: none;
-                margin: 0 2px;
-              }
+              background-color: ${red[500]};
             `}
-            dangerouslySetInnerHTML={{ __html: linkableText }}
-          />
-        </CardContent>
-      </Card>
-
-      <ActionArea>
-        <Button
-          href={sourceUrl}
+            src={authorProfileImageUrl}
+          >
+            {!authorProfileImageUrl && authorName[0]}
+          </Avatar>
+        }
+        title={authorName}
+        subheader={formattedNow}
+      />
+      <CardMedia
+        css={`
+          width: 100%;
+          //height: 0;
+          padding-top: 100%; // 16:9
+        `}
+        // TODO support multiple media
+        image={mediaUrls[0]}
+        title="Paella dish"
+      />
+      <CardContent>
+        <Typography
+          variant="body2"
+          color="textSecondary"
+          component="p"
           css={`
-            ${primaryBackground}
+            white-space: pre-wrap;
+
+            & > a {
+              text-decoration: none;
+              margin: 0 2px;
+            }
           `}
-          target="__blank"
-          color="primary"
-          variant="contained"
-        >{`Instagramのページへ`}</Button>
-      </ActionArea>
-    </Container>
+          dangerouslySetInnerHTML={{ __html: linkableText }}
+        />
+      </CardContent>
+    </Card>
   );
 };
 
