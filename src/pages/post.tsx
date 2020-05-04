@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { firestore } from "firebase";
 
 import { InternalAppBar } from "../components/organisms/AppBar";
-import PostDetail from "../components/organisms/PostDetail";
+import PostDetail from "../components/organisms/PostDetail/PostDetail";
 import useFirebase from "../components/hooks/useFirebase";
 
 import { Post, PostDocument } from "../share/models/Post";
@@ -14,6 +14,7 @@ import { User } from "../share/models/User";
 import { RootState } from "../modules/store";
 
 import { importPostDocs } from "../modules/entities";
+import PostDetailLoading from "../components/organisms/PostDetail/PostDetailLoading";
 
 const detailSelector = (id: string | null) => (
   state: RootState
@@ -75,7 +76,7 @@ const PostPage: NextPage = () => {
     })();
   }, [postId, firebaseApp]);
 
-  let body = <div>Not found.</div>;
+  let body = <PostDetailLoading />;
 
   if (detail) {
     const { user, post } = detail;

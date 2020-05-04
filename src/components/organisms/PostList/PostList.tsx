@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useCallback, useState } from "react";
+import React, { FC, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 
@@ -14,105 +14,18 @@ import {
   Index,
   IndexRange,
 } from "react-virtualized";
-import {
-  Avatar,
-  Card,
-  CardHeader,
-  CardMedia,
-  CardContent,
-  Typography,
-} from "@material-ui/core";
-import { red } from "@material-ui/core/colors";
 
-import useFirebase from "../hooks/useFirebase";
-import Container from "../atoms/Container";
+import useFirebase from "../../hooks/useFirebase";
+import Container from "../../atoms/Container";
+import PostListItem from "./PostListItem";
 
-import { RootState } from "../../modules/store";
-import { importPostDocs } from "../../modules/entities";
-import displaySlice from "../../modules/display";
-import { User } from "../../share/models/User";
-import { PostDocument, Post } from "../../share/models/Post";
+import { RootState } from "../../../modules/store";
+import { importPostDocs } from "../../../modules/entities";
+import displaySlice from "../../../modules/display";
 
-import { dateFormat } from "../../helper/format";
-
-interface PostListItemProps {
-  authorName: string;
-  authorProfileImageUrl?: string;
-  timestamp: Date;
-  mediaUrls: string[];
-  text: string;
-  onClick: () => void;
-  onMount: () => void;
-}
-
-const PostListItem: FC<PostListItemProps> = (props) => {
-  const {
-    authorName,
-    authorProfileImageUrl,
-    timestamp,
-    mediaUrls,
-    text,
-    onMount,
-    onClick,
-  } = props;
-
-  useEffect(() => {
-    onMount();
-  }, []);
-
-  const [now] = useState(new Date());
-  const [formattedNow] = useState(dateFormat(now, timestamp));
-
-  return (
-    <Card
-      css={`
-        max-width: 500px;
-        margin: 0 auto;
-      `}
-      onClick={onClick}
-    >
-      <CardHeader
-        avatar={
-          <Avatar
-            css={`
-              background-color: ${red[500]};
-            `}
-            src={authorProfileImageUrl}
-          >
-            {!authorProfileImageUrl && authorName[0]}
-          </Avatar>
-        }
-        title={authorName}
-        subheader={formattedNow}
-      />
-      <CardMedia
-        css={`
-          height: 0;
-          //padding-top: 56.25%; // 16:9
-          padding-top: 100%;
-        `}
-        // TODO support multiple media
-        image={mediaUrls[0]}
-        title="Paella dish"
-      />
-      <CardContent>
-        <Typography
-          variant="body2"
-          color="textSecondary"
-          component="p"
-          css={`
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 3;
-            overflow: hidden;
-          `}
-        >
-          {text}
-        </Typography>
-      </CardContent>
-    </Card>
-  );
-};
+import { User } from "../../../share/models/User";
+import { PostDocument, Post } from "../../../share/models/Post";
+import LoadingPostListItem from "./LoadingPostListItem";
 
 type RecentPost = Post & {
   author: User;
@@ -152,12 +65,6 @@ const PostList: FC = (props) => {
     ({ display }: RootState) => display.recentPost
   );
 
-  useEffect(() => {
-    if (!firebaseApp) {
-      return;
-    }
-  }, [firebaseApp]);
-
   const onClickPost = (postId: string) => () => {
     router.push({
       pathname: "/post",
@@ -185,7 +92,7 @@ const PostList: FC = (props) => {
             }}
           >
             {!post ? (
-              <div key={index}>loading...</div>
+              <LoadingPostListItem key={index} />
             ) : (
               <PostListItem
                 key={post.id}

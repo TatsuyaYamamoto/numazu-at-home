@@ -12,9 +12,9 @@ import {
 import { red } from "@material-ui/core/colors";
 import styled from "styled-components";
 
-import Container from "../atoms/Container";
-import { dateFormat } from "../../helper/format";
-import { primaryBackground } from "../helper/styles";
+import Container from "../../atoms/Container";
+import { dateFormat } from "../../../helper/format";
+import { primaryBackground } from "../../helper/styles";
 
 const ActionArea = styled.div`
   margin: 20px 0;
