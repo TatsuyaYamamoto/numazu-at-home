@@ -95,6 +95,7 @@ const onLoadIgHashtagRecentMedia = async (igMedia: IGHashtagRecentMedia) => {
     mediaUrls: igMedia.children
       ? igMedia.children.map(({ permalink }) => `${permalink}media`)
       : [`${igMedia.permalink}media`],
+    sourceUrl: igMedia.permalink,
     deleted: false,
     createdAt: firestore.FieldValue.serverTimestamp(),
   };

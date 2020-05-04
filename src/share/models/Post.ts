@@ -17,6 +17,7 @@ export interface PostDocument extends firestore.DocumentData {
   timestamp: firestore.Timestamp;
   mediaType: MediaType;
   mediaUrls: string[];
+  sourceUrl: string;
   deleted: boolean;
   createdAt: firestore.FieldValue;
 }
@@ -27,4 +28,5 @@ export interface Post {
   text: string;
   timestamp: Date;
   mediaUrls: string[];
+  sourceUrl: string;
 }

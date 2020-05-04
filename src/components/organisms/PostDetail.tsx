@@ -2,6 +2,7 @@ import React, { FC, useMemo, useState } from "react";
 
 import {
   Avatar,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -9,8 +10,15 @@ import {
   Typography,
 } from "@material-ui/core";
 import { red } from "@material-ui/core/colors";
+
 import Container from "../atoms/Container";
 import { dateFormat } from "../../helper/format";
+import styled from "styled-components";
+
+const ActionArea = styled.div`
+  margin: 20px 0;
+  text-align: center;
+`;
 
 interface PostDetailProps {
   authorName: string;
@@ -18,6 +26,7 @@ interface PostDetailProps {
   timestamp: Date;
   mediaUrls: string[];
   text: string;
+  sourceUrl: string;
 }
 
 const PostDetail: FC<PostDetailProps> = (props) => {
@@ -27,6 +36,7 @@ const PostDetail: FC<PostDetailProps> = (props) => {
     timestamp,
     mediaUrls,
     text,
+    sourceUrl,
   } = props;
 
   const [now] = useState(new Date());
@@ -112,6 +122,15 @@ const PostDetail: FC<PostDetailProps> = (props) => {
           />
         </CardContent>
       </Card>
+
+      <ActionArea>
+        <Button
+          href={sourceUrl}
+          target="__blank"
+          color="primary"
+          variant="contained"
+        >{`Instagramのページへ`}</Button>
+      </ActionArea>
     </Container>
   );
 };

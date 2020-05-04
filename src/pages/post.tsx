@@ -95,6 +95,7 @@ const PostPage: NextPage = () => {
         timestamp={post.timestamp}
         mediaUrls={post.mediaUrls}
         text={post.text}
+        sourceUrl={post.sourceUrl}
       />
     </>
   );
