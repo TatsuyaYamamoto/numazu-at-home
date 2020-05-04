@@ -1,9 +1,13 @@
-import { credential, initializeApp } from "firebase-admin";
+import { credential, initializeApp, AppOptions } from "firebase-admin";
 
-initializeApp({
-  credential: credential.applicationDefault(),
-  databaseURL: "https://numazu-at-home-dev.firebaseio.com",
-});
+const firebaseAppOptions: AppOptions = process.env.FUNCTIONS_EMULATOR
+  ? {
+      credential: credential.applicationDefault(),
+      databaseURL: "https://numazu-at-home-dev.firebaseio.com",
+    }
+  : {};
+
+initializeApp(firebaseAppOptions);
 
 import { https, firestore } from "firebase-functions";
 
