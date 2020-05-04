@@ -8,6 +8,12 @@ import { AppBar as MuiAppBar, Toolbar } from "@material-ui/core";
 import HelpButton from "../../molecules/HelpButton";
 import FlexSpace from "../../atoms/FlexSpace";
 import Logo from "../../atoms/Logo";
+import { primaryBackground } from "../../helper/styles";
+
+const StyledAppBar = styled(MuiAppBar)`
+  ${primaryBackground};
+  cursor: pointer;
+`;
 
 export const FixedAppBarMargin = styled.div`
   margin-top: 64px;
@@ -30,13 +36,13 @@ export const TopAppBar: FC = () => {
 
   return (
     <>
-      <MuiAppBar position="fixed">
+      <StyledAppBar position="fixed">
         <Toolbar onClick={onClickAppBar}>
-          <Logo />
+          <Logo fontSize={25} />
           <FlexSpace />
           <HelpButton onClick={onClickHelp} />
         </Toolbar>
-      </MuiAppBar>
+      </StyledAppBar>
       <FixedAppBarMargin />
     </>
   );

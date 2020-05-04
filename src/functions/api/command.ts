@@ -102,4 +102,37 @@ router.post("/load_ig_hashtag_recent_media", (_, res, next) => {
   })().catch(next);
 });
 
+router.post("/create", (_, res, next) => {
+  const commandColRef = firestore().collection("commands") as CommandColRef;
+  const newCommandDocRef = commandColRef.doc();
+  const commandDataColRef = newCommandDocRef.collection("data");
+
+  (async () => {
+    const batch = firestore().batch();
+
+    batch.set(newCommandDocRef, {
+      type: "LOAD_IG_HASHTAG_RECENT_MEDIA",
+      tmp: true,
+    } as any);
+
+    const commandRefs = await commandColRef.listDocuments();
+    for (const commandRef of commandRefs) {
+      const dataQuerySnap = await commandRef.collection("data").get();
+
+      for (const dataSnap of dataQuerySnap.docs) {
+        const data = dataSnap.data();
+
+        const commandDataDocRef = commandDataColRef.doc(dataSnap.id);
+        batch.set(commandDataDocRef, data);
+      }
+    }
+
+    await batch.commit();
+
+    res.json({
+      ok: true,
+    });
+  })().catch(next);
+});
+
 export default router;

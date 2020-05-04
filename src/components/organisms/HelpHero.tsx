@@ -13,10 +13,7 @@ import Logo from "../atoms/Logo";
 import BackArrowButton from "../molecules/BackArrowButton";
 import AppVersion from "../atoms/AppVersion";
 import Container from "../atoms/Container";
-
-const backgroundColor = css`
-  background-color: ${({ theme }) => theme.palette.primary.main};
-`;
+import { primaryBackground } from "../helper/styles";
 
 const textColor = css`
   color: ${({ theme }) =>
@@ -24,7 +21,7 @@ const textColor = css`
 `;
 
 const Root = styled.div<{ theme: Theme }>`
-  ${backgroundColor}
+  ${primaryBackground}
   ${textColor}
   text-align: center;
 
@@ -44,6 +41,10 @@ const CatchCopy = styled.div`
 
 const Description = styled.div``;
 
+const StyledAppBar = styled(MuiAppBar)`
+  background-color: inherit;
+`;
+
 const HelpHero: FC = () => {
   const router = useRouter();
 
@@ -54,11 +55,11 @@ const HelpHero: FC = () => {
 
   return (
     <Root>
-      <MuiAppBar elevation={0} position={"relative"}>
+      <StyledAppBar elevation={0} position={"relative"}>
         <Toolbar>
           <BackArrowButton onClick={onClickBack} />
         </Toolbar>
-      </MuiAppBar>
+      </StyledAppBar>
       <LogoArea>
         <Logo fontSize={40} />
         <br />

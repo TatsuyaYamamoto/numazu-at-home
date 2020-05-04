@@ -4,7 +4,10 @@ import Head from "next/head";
 
 import { Provider } from "react-redux";
 
-import { ThemeProvider as MuiThemeProvider } from "@material-ui/core/styles";
+import {
+  ThemeProvider as MuiThemeProvider,
+  StylesProvider,
+} from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { ThemeProvider as SCThemeProvider } from "styled-components";
 
@@ -40,14 +43,17 @@ const MyApp: FC<AppProps> = (props) => {
       <Provider store={store}>
         <SCThemeProvider theme={theme}>
           <MuiThemeProvider theme={theme}>
-            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-            <CssBaseline />
+            {/* https://material-ui.com/guides/interoperability/#controlling-priority-%EF%B8%8F-3 */}
+            <StylesProvider injectFirst={true}>
+              {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+              <CssBaseline />
 
-            <FirebaseContextProvider
-              initParams={{ options: config.firebaseConfigs }}
-            >
-              <Component {...pageProps} />
-            </FirebaseContextProvider>
+              <FirebaseContextProvider
+                initParams={{ options: config.firebaseConfigs }}
+              >
+                <Component {...pageProps} />
+              </FirebaseContextProvider>
+            </StylesProvider>
           </MuiThemeProvider>
         </SCThemeProvider>
       </Provider>

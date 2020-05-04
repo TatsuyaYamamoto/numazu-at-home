@@ -75,20 +75,11 @@ const PostPage: NextPage = () => {
     })();
   }, [postId, firebaseApp]);
 
-  if (!detail) {
-    return (
-      <>
-        <InternalAppBar showBackArrow={true} title={`投稿`} />
-        <div>Not found.</div>
-      </>
-    );
-  }
+  let body = <div>Not found.</div>;
 
-  const { user, post } = detail;
-
-  return (
-    <>
-      <InternalAppBar showBackArrow={true} title={`投稿`} />
+  if (detail) {
+    const { user, post } = detail;
+    body = (
       <PostDetail
         authorName={user.displayName || user.userName}
         authorProfileImageUrl={user.profileImageUrl}
@@ -97,6 +88,13 @@ const PostPage: NextPage = () => {
         text={post.text}
         sourceUrl={post.sourceUrl}
       />
+    );
+  }
+
+  return (
+    <>
+      <InternalAppBar showBackArrow={true} title={`投稿`} />
+      {body}
     </>
   );
 };
