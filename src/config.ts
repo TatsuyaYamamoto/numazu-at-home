@@ -31,6 +31,17 @@ const config = {
         appId: "1:312539538020:web:c2b4c2438ad7f88e947571",
         measurementId: "G-N2GCS2Z39X",
       },
+  algolia: isProduction
+    ? {
+        appId: "H47NSWHKI8",
+        apiKey: "625eba0c203b69eecd3bad154008ebc3",
+        indexName: "numazu-at-home",
+      }
+    : {
+        appId: "H47NSWHKI8",
+        apiKey: "625eba0c203b69eecd3bad154008ebc3",
+        indexName: "numazu-at-home-dev",
+      },
 };
 
 export default config;

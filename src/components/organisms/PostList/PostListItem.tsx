@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, forwardRef, useEffect, useState } from "react";
 
 import {
   Avatar,
@@ -18,11 +18,10 @@ interface PostListItemProps {
   timestamp: Date;
   mediaUrls: string[];
   text: string;
-  onClick: () => void;
-  onMount: () => void;
+  onMount?: () => void;
 }
 
-const PostListItem: FC<PostListItemProps> = (props) => {
+const PostListItem: FC<PostListItemProps> = forwardRef((props, ref) => {
   const {
     authorName,
     authorProfileImageUrl,
@@ -30,12 +29,14 @@ const PostListItem: FC<PostListItemProps> = (props) => {
     mediaUrls,
     text,
     onMount,
-    onClick,
+    ...others
   } = props;
 
   useEffect(() => {
-    onMount();
-  }, []);
+    if (onMount) {
+      onMount();
+    }
+  }, [onMount]);
 
   const [now] = useState(new Date());
   const [formattedNow] = useState(dateFormat(now, timestamp));
@@ -46,7 +47,8 @@ const PostListItem: FC<PostListItemProps> = (props) => {
         max-width: 500px;
         margin: 0 auto;
       `}
-      onClick={onClick}
+      innerRef={ref}
+      {...others}
     >
       <CardHeader
         avatar={
@@ -88,6 +90,6 @@ const PostListItem: FC<PostListItemProps> = (props) => {
       </CardContent>
     </Card>
   );
-};
+});
 
 export default PostListItem;

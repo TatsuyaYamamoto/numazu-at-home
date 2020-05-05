@@ -51,6 +51,17 @@ const expressApp = express();
 expressApp.use(morgan("combined"));
 expressApp.use("/api/command", commandRouter);
 expressApp.use("/api/ogp", ogpRouter);
+expressApp.use(
+  (
+    err: Error,
+    _: express.Request,
+    res: express.Response,
+    __: express.NextFunction
+  ) => {
+    console.error(err);
+    res.status(500).json(err);
+  }
+);
 
 export const api = https.onRequest(expressApp);
 

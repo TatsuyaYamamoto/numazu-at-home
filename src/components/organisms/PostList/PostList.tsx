@@ -1,6 +1,6 @@
 import React, { FC, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useRouter } from "next/router";
+import Link from "next/link";
 
 import { firestore } from "firebase";
 
@@ -58,19 +58,11 @@ const postListSelector = (state: RootState): RecentPost[] => {
 const PostList: FC = (props) => {
   const { ...others } = props;
   const { app: firebaseApp } = useFirebase();
-  const router = useRouter();
   const dispatch = useDispatch();
   const recentPosts = useSelector(postListSelector);
   const { hasMoreItem, lastPostDocId } = useSelector(
     ({ display }: RootState) => display.recentPost
   );
-
-  const onClickPost = (postId: string) => () => {
-    router.push({
-      pathname: "/post",
-      query: { id: postId },
-    });
-  };
 
   const rowRenderer: ListRowRenderer = ({ key, index, style, parent }) => {
     const post = recentPosts[index];
@@ -94,16 +86,22 @@ const PostList: FC = (props) => {
             {!post ? (
               <LoadingPostListItem key={index} />
             ) : (
-              <PostListItem
-                key={post.id}
-                onClick={onClickPost(post.id)}
-                authorName={post.author.displayName || post.author.userName}
-                authorProfileImageUrl={post.author.profileImageUrl}
-                timestamp={post.timestamp}
-                mediaUrls={post.mediaUrls}
-                text={post.text}
-                onMount={measure}
-              />
+              <Link
+                href={{
+                  pathname: "/post",
+                  query: { id: post.id },
+                }}
+              >
+                <PostListItem
+                  key={post.id}
+                  authorName={post.author.displayName || post.author.userName}
+                  authorProfileImageUrl={post.author.profileImageUrl}
+                  timestamp={post.timestamp}
+                  mediaUrls={post.mediaUrls}
+                  text={post.text}
+                  onMount={measure}
+                />
+              </Link>
             )}
           </div>
         )}

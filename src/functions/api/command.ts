@@ -1,14 +1,18 @@
 import express from "express";
 import fetch from "node-fetch";
 import { firestore } from "firebase-admin";
+import algoliasearch from "algoliasearch";
 
 import config from "../../config.functions";
 import { IGHashtagRecentMedia, IGPaging } from "../../share/models/IG";
 import { CommandDocument, CommandType } from "../../share/models/Command";
 import { PostDocument } from "../../share/models/Post";
+import { UserDocument } from "../../share/models/User";
+import { AlgoliaObject } from "../../share/models/Algolia";
 
 export type CommandColRef = firestore.CollectionReference<CommandDocument>;
 export type PostColRef = firestore.CollectionReference<PostDocument>;
+export type UserColRef = firestore.CollectionReference<UserDocument>;
 
 const router = express.Router();
 
@@ -132,6 +136,72 @@ router.post("/create", (_, res, next) => {
     res.json({
       ok: true,
     });
+  })().catch(next);
+});
+
+router.post("/reset_algolia_index", (_, res, next) => {
+  const algolia = algoliasearch(config.algolia.app_id, config.algolia.api_key);
+  const index = algolia.initIndex(config.algolia.index_name);
+  const postColRef = firestore().collection("posts") as PostColRef;
+  const userColRef = firestore().collection("users") as UserColRef;
+
+  (async () => {
+    const [postRefs, userRefs] = await Promise.all([
+      postColRef.listDocuments(),
+      userColRef.listDocuments(),
+    ]);
+
+    const posts: { [id: string]: PostDocument } = {};
+    const users: { [id: string]: UserDocument } = {};
+
+    await Promise.all([
+      ...postRefs.map(async (postRef) => {
+        const snap = await postRef.get();
+        const post = snap.data();
+
+        if (post) {
+          posts[postRef.id] = post;
+        }
+      }),
+      ...userRefs.map(async (userRef) => {
+        const snap = await userRef.get();
+        const user = snap.data();
+
+        if (user) {
+          users[userRef.id] = user;
+        }
+      }),
+    ]);
+
+    const objects: AlgoliaObject[] = Object.keys(posts).map((postId) => {
+      const post = posts[postId];
+      const user = users[post.author.id];
+
+      return {
+        objectID: post.id,
+        text: post.text,
+        authorName: user.displayName || user.userName,
+        authorProfileImageUrl: user.profileImageUrl,
+        mediaUrl: post.mediaUrls[0],
+        timestamp: post.timestamp.toMillis(),
+      };
+    });
+
+    const result = await index.saveObjects(objects);
+
+    if (result) {
+      res.json({
+        ok: true,
+        result: {
+          ...result,
+          objectIDsCount: result.objectIDs.length,
+        },
+      });
+    } else {
+      res.json({
+        ok: false,
+      });
+    }
   })().catch(next);
 });
 

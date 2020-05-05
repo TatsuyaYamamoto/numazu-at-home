@@ -6,10 +6,12 @@ import {
 
 import entities from "./entities";
 import display from "./display";
+import search from "./search";
 
 const reducer = combineReducers({
   entities: entities.reducer,
   display: display.reducer,
+  search: search.reducer,
 });
 
 export const store = configureStore({

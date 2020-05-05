@@ -28,7 +28,9 @@ const toPath = (navValue: NavValue): string => {
 };
 
 const StaticBottomNavigationAction = styled(BottomNavigationAction)`
-  &.MuiBottomNavigationAction-root.Mui-selected {
+  padding: 16px 12px;
+
+  &.Mui-selected {
     padding-top: 16px;
   }
 
@@ -51,6 +53,7 @@ const MobileBottomNavigation: FC = () => {
     <Paper
       elevation={2}
       css={`
+        color: unset;
         position: fixed;
         bottom: 0;
         width: 100%;
