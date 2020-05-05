@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NextPage } from "next";
-import { useRouter } from "next/router";
 
 import { firestore } from "firebase";
 
@@ -22,6 +21,9 @@ import { Post, PostDocument } from "../share/models/Post";
 import { User } from "../share/models/User";
 import { RootState } from "../modules/store";
 import { importPostDocs } from "../modules/entities";
+import { Ogp, Title } from "../components/helper/meta";
+
+import config from "../config";
 
 const Actions = styled.div`
   margin-top: 40px;
@@ -38,7 +40,7 @@ const SourceLinkActions = styled.div`
   margin: 20px 0;
 `;
 
-const detailSelector = (id: string | null) => (
+const detailSelector = (id?: string) => (
   state: RootState
 ): { post: Post; user: User } | undefined => {
   if (!id) {
@@ -56,12 +58,11 @@ const detailSelector = (id: string | null) => (
   return user ? { post, user } : undefined;
 };
 
-const PostPage: NextPage = () => {
-  const router = useRouter();
-  const [postId] = useState(() => {
-    const { searchParams } = new URL(`http://dummy.com${router.asPath}`);
-    return searchParams.get("id");
-  });
+const PostPage: NextPage<
+  { postId: string; locationHref: string } | undefined
+> = (props) => {
+  const { postId, locationHref } = props;
+
   const detail = useSelector(detailSelector(postId));
   const { app: firebaseApp } = useFirebase();
   const dispatch = useDispatch();
@@ -98,10 +99,16 @@ const PostPage: NextPage = () => {
     })();
   }, [postId, firebaseApp]);
 
+  let title = undefined;
   let body = <PostDetailLoading />;
 
   if (detail) {
     const { user, post } = detail;
+    title = (
+      <Title>
+        {`Numazu@Home - ${user.displayName || user.userName}さんの投稿`}
+      </Title>
+    );
     body = (
       <>
         <PostDetail
@@ -113,7 +120,7 @@ const PostPage: NextPage = () => {
         />
         <Actions>
           <ShareActions>
-            <TwitterShareButton text={"hogehoge"} url={location.href} />
+            <TwitterShareButton url={locationHref} />
           </ShareActions>
 
           <SourceLinkActions>
@@ -139,10 +146,36 @@ const PostPage: NextPage = () => {
 
   return (
     <>
+      <>
+        {title}
+        <Ogp postId={postId} url={locationHref} />
+      </>
       <InternalAppBar showBackArrow={true} title={`投稿`} />
       <Container>{body}</Container>
     </>
   );
+};
+
+PostPage.getInitialProps = ({ pathname, query, res }) => {
+  const postId = String(query["id"]);
+
+  if (!postId) {
+    if (res) {
+      // server
+      res.writeHead(302, { Location: "/" });
+      res.end();
+      return;
+    } else {
+      // client
+      location.href = "/";
+      return;
+    }
+  }
+
+  return {
+    postId,
+    locationHref: `${config.origin}${pathname}?id=${postId}`,
+  };
 };
 
 export default PostPage;

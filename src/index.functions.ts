@@ -13,8 +13,10 @@ import { https, firestore } from "firebase-functions";
 
 import next from "next";
 import express from "express";
+import morgan from "morgan";
 
 import commandRouter from "./functions/api/command";
+import ogpRouter from "./functions/api/ogp";
 import _onCreateCommend from "./functions/firestore/onCreateCommend";
 
 // https://blog.katsubemakito.net/firebase/functions-environmentvariable
@@ -37,12 +39,18 @@ const nextServer = next({
 const handle = nextServer.getRequestHandler();
 
 export const nextApp = https.onRequest((req, res) => {
+  const { ip, method, path } = req;
+  console.log(
+    `${ip} [${new Date()}] "${method} ${path}" "${req.get("User-Agent")}"`
+  );
   // @ts-ignore
   return nextServer.prepare().then(() => handle(req, res));
 });
 
 const expressApp = express();
+expressApp.use(morgan("combined"));
 expressApp.use("/api/command", commandRouter);
+expressApp.use("/api/ogp", ogpRouter);
 
 export const api = https.onRequest(expressApp);
 

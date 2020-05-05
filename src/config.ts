@@ -1,6 +1,15 @@
-const isProduction = process.env.nodeEnv === "production";
+export const isProduction = process.env.nodeEnv === "production";
+
+const origin = isProduction
+  ? `https://numazu-at-home.web.app`
+  : `https://numazu-at-home-dev.web.app`;
+
+const defaultOgpImageUrl = `${origin}/assets/images/default.jpg`;
 
 const config = {
+  production: isProduction,
+  origin,
+  defaultOgpImageUrl,
   firebaseConfigs: isProduction
     ? {
         apiKey: "AIzaSyDKBiY-8QfnlFUq36qc9CrSorYyXPN6Jz4",

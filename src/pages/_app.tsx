@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import React, { FC, useEffect } from "react";
 import { AppProps } from "next/app";
 import Head from "next/head";
 
@@ -15,6 +15,7 @@ import { FirebaseContextProvider } from "../components/hooks/useFirebase";
 import theme from "../theme";
 import config from "../config";
 import { store } from "../modules/store";
+import { Ogp, Title } from "../components/helper/meta";
 
 import "firebase/auth";
 import "firebase/firestore";
@@ -33,11 +34,23 @@ const MyApp: FC<AppProps> = (props) => {
 
   return (
     <>
+      <Title>Numazu@Home</Title>
+      <Ogp url={config.origin} />
       <Head>
-        <title>My page</title>
+        {!config.production && (
+          <meta name="robots" content="noindex , nofollow" />
+        )}
         <meta
           name="viewport"
           content="minimum-scale=1, initial-scale=1, width=device-width"
+        />
+        <meta
+          name="description"
+          content="Numazu@Homeは、「沼津」と「沼津のお店」と「沼津のお店を利用する皆さん」をサポートするアプリです。"
+        />
+        <meta
+          name="keywords"
+          content="沼津,沼津市,テイクアウト de ステイホーム,おうちでぬまづ,お届けぬまづ,ぬまづ応援隊,テイクアウト,デリバリー"
         />
       </Head>
       <Provider store={store}>

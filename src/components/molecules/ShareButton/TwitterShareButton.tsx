@@ -5,7 +5,7 @@ import { Fab, SvgIcon } from "@material-ui/core";
 import TwitterBrands from "../../atoms/svg/twitter-brands.svg";
 
 interface TwitterShareButtonProps {
-  text: string;
+  text?: string;
   url: string;
 }
 
