@@ -2,15 +2,12 @@ import { firestore } from "firebase-admin";
 import { EventContext } from "firebase-functions";
 import fetch from "node-fetch";
 import { JSDOM } from "jsdom";
-import algoliasearch from "algoliasearch";
-import { SaveObjectResponse } from "@algolia/client-search";
 
 import { UserDocument } from "../../share/models/User";
 import { PostDocument } from "../../share/models/Post";
 import { IGHashtagRecentMedia, IGSharedData } from "../../share/models/IG";
 import { CommandDocument } from "../../share/models/Command";
-import config from "../../config.functions";
-import { AlgoliaObject } from "../../share/models/Algolia";
+import { saveAlgoliaObjects } from "../helper/algolia";
 
 type UserColRef = firestore.CollectionReference<UserDocument>;
 type PostColRef = firestore.CollectionReference<PostDocument>;
@@ -34,9 +31,12 @@ const onCreateCommend = async (
         `firestore commit is succeed. write result counts: ${firestoreResults.length}`
       );
 
-      const algoliaResult = await saveAlgoliaObject(data);
+      const algoliaResult = await saveAlgoliaObjects({
+        users: { [data.user.id]: data.user },
+        posts: { [data.post.id]: data.post },
+      });
       console.log(
-        `algolia object saving is succeed. objectID: ${algoliaResult.objectID}`
+        `algolia object saving is succeed. objectIDs: ${algoliaResult.objectIDs}`
       );
     }
   }
@@ -142,27 +142,6 @@ const saveFirestore = async (params: {
   batch.set(postDocRef, post, { merge: true });
 
   return batch.commit();
-};
-
-const saveAlgoliaObject = async (params: {
-  post: PostDocument;
-  user: UserDocument;
-}): Promise<SaveObjectResponse> => {
-  const { post, user } = params;
-
-  const algolia = algoliasearch(config.algolia.app_id, config.algolia.api_key);
-  const index = algolia.initIndex(config.algolia.index_name);
-
-  const newObject: AlgoliaObject = {
-    objectID: post.id,
-    text: post.text,
-    authorName: user.displayName || user.userName,
-    authorProfileImageUrl: user.profileImageUrl,
-    timestamp: post.timestamp.toMillis(),
-    mediaUrl: post.mediaUrls[0],
-  };
-
-  return index.saveObject(newObject);
 };
 
 const parsePermalink = async (permalink: string): Promise<IGSharedData> => {

@@ -1,21 +1,25 @@
 import express from "express";
 import fetch from "node-fetch";
 import { firestore } from "firebase-admin";
-import algoliasearch from "algoliasearch";
 
 import Twit from "twit";
 import moment from "moment";
 
-import config from "../../config.functions";
 import { IGHashtagRecentMedia, IGPaging } from "../../share/models/IG";
 import { CommandDocument, CommandType } from "../../share/models/Command";
 import { PostDocument } from "../../share/models/Post";
 import { UserDocument } from "../../share/models/User";
-import { AlgoliaObject } from "../../share/models/Algolia";
+import config from "../../config.functions";
+import { saveAlgoliaObjects } from "../helper/algolia";
+import { mergeFirestoreDocs } from "../helper/firestore";
 
 export type CommandColRef = firestore.CollectionReference<CommandDocument>;
 export type PostColRef = firestore.CollectionReference<PostDocument>;
 export type UserColRef = firestore.CollectionReference<UserDocument>;
+
+const commandColRef = firestore().collection("commands") as CommandColRef;
+const postColRef = firestore().collection("posts") as PostColRef;
+const userColRef = firestore().collection("users") as UserColRef;
 
 const router = express.Router();
 
@@ -56,15 +60,11 @@ const searchMediasByHashtag = async (): Promise<IGHashtagRecentMedia[]> => {
 };
 
 const isPostExisting = async (docId: string): Promise<boolean> => {
-  const postColRef = firestore().collection("posts") as PostColRef;
-
   const snap = await postColRef.doc(docId).get();
   return snap.exists;
 };
 
 router.post("/load_ig_hashtag_recent_media", (_, res, next) => {
-  const commandColRef = firestore().collection("commands") as CommandColRef;
-
   const newCommandDocRef = commandColRef.doc();
   const commandDataColRef = newCommandDocRef.collection("data");
   const commandType: CommandType = "LOAD_IG_HASHTAG_RECENT_MEDIA";
@@ -194,9 +194,6 @@ router.post("/load_hashtag_recent_tweet", (req, res, next) => {
 
   const hashtags = ["#おうちでぬまづ"];
 
-  const postColRef = firestore().collection("posts") as PostColRef;
-  const userColRef = firestore().collection("users") as UserColRef;
-
   (async () => {
     const q = [...hashtags].join(" ");
     const statuses = await rangeSearchTweets(
@@ -291,20 +288,12 @@ router.post("/load_hashtag_recent_tweet", (req, res, next) => {
       `saving target docs of post and user are created. user count: ${userCount}, post count: ${postCount}`
     );
 
+    await mergeFirestoreDocs({ posts, users });
+    const algoliaResult = await saveAlgoliaObjects({ posts, users });
+
     const userIds = Object.keys(users);
     const postIds = Object.keys(posts);
     const statusIds = statuses.map((s) => s.id_str);
-
-    const batch = firestore().batch();
-    for (const userId of userIds) {
-      const userDocRef = userColRef.doc(userId);
-      batch.set(userDocRef, users[userId], { merge: true });
-    }
-    for (const postId of postIds) {
-      const postDocRef = postColRef.doc(postId);
-      batch.set(postDocRef, posts[postId], { merge: true });
-    }
-    await batch.commit();
 
     res.json({
       ok: true,
@@ -314,12 +303,12 @@ router.post("/load_hashtag_recent_tweet", (req, res, next) => {
       userIds,
       postIds,
       statusIds,
+      algolia: algoliaResult,
     });
   })().catch(next);
 });
 
 router.post("/create", (_, res, next) => {
-  const commandColRef = firestore().collection("commands") as CommandColRef;
   const newCommandDocRef = commandColRef.doc();
   const commandDataColRef = newCommandDocRef.collection("data");
 
@@ -352,11 +341,6 @@ router.post("/create", (_, res, next) => {
 });
 
 router.post("/reset_algolia_index", (_, res, next) => {
-  const algolia = algoliasearch(config.algolia.app_id, config.algolia.api_key);
-  const index = algolia.initIndex(config.algolia.index_name);
-  const postColRef = firestore().collection("posts") as PostColRef;
-  const userColRef = firestore().collection("users") as UserColRef;
-
   (async () => {
     const [postRefs, userRefs] = await Promise.all([
       postColRef.listDocuments(),
@@ -385,35 +369,15 @@ router.post("/reset_algolia_index", (_, res, next) => {
       }),
     ]);
 
-    const objects: AlgoliaObject[] = Object.keys(posts).map((postId) => {
-      const post = posts[postId];
-      const user = users[post.author.id];
+    const result = await saveAlgoliaObjects({ users, posts });
 
-      return {
-        objectID: post.id,
-        text: post.text,
-        authorName: user.displayName || user.userName,
-        authorProfileImageUrl: user.profileImageUrl,
-        mediaUrl: post.mediaUrls[0],
-        timestamp: post.timestamp.toMillis(),
-      };
+    res.json({
+      ok: true,
+      result: {
+        ...result,
+        objectIDsCount: result.objectIDs.length,
+      },
     });
-
-    const result = await index.saveObjects(objects);
-
-    if (result) {
-      res.json({
-        ok: true,
-        result: {
-          ...result,
-          objectIDsCount: result.objectIDs.length,
-        },
-      });
-    } else {
-      res.json({
-        ok: false,
-      });
-    }
   })().catch(next);
 });
 

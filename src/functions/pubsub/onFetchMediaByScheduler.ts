@@ -3,24 +3,45 @@ import { firestore } from "firebase-admin";
 
 import fetch from "node-fetch";
 
+type PubsubType = "onLoadRecentPostByScheduler";
+
 interface PubsubLogDocument {
-  ok: boolean;
-  json: {};
+  type: PubsubType;
   timestamp: firestore.FieldValue;
+  data: {
+    [provider: string]: {
+      ok: boolean;
+      body: {};
+    };
+  };
 }
 
 export type PubsubLogColRef = firestore.CollectionReference<PubsubLogDocument>;
 
-const onFetchMediaByScheduler = async (_: EventContext) => {
+const onLoadRecentPostByScheduler = async (_: EventContext) => {
   const projectId = process.env.GCLOUD_PROJECT;
-  const url = `https://${projectId}.web.app/api/command/load_ig_hashtag_recent_media`;
-  const res = await fetch(url, { method: "POST" });
-  const json = await res.json();
+
+  const loadInstagramUrl = `https://${projectId}.web.app/api/command/load_ig_hashtag_recent_media`;
+  const resInstagram = await fetch(loadInstagramUrl, { method: "POST" });
+  const jsonInstagram = await resInstagram.json();
+
+  const loadTwitterDataUrl = `https://${projectId}.web.app/api/command/load_hashtag_recent_tweet`;
+  const resTwitter = await fetch(loadTwitterDataUrl, { method: "POST" });
+  const jsonTwitter = await resTwitter.json();
 
   const newLog: PubsubLogDocument = {
-    ok: res.ok,
-    json,
+    type: "onLoadRecentPostByScheduler",
     timestamp: firestore.FieldValue.serverTimestamp(),
+    data: {
+      instagram: {
+        ok: resInstagram.ok,
+        body: jsonInstagram,
+      },
+      twitter: {
+        ok: resTwitter.ok,
+        body: jsonTwitter,
+      },
+    },
   };
 
   const pubsubLogColRef = firestore().collection(
@@ -30,4 +51,4 @@ const onFetchMediaByScheduler = async (_: EventContext) => {
   await pubsubLogColRef.add(newLog);
 };
 
-export default onFetchMediaByScheduler;
+export default onLoadRecentPostByScheduler;
