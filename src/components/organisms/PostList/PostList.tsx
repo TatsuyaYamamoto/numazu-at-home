@@ -4,16 +4,7 @@ import Link from "next/link";
 
 import { firestore } from "firebase";
 
-import {
-  InfiniteLoader,
-  WindowScroller,
-  List,
-  ListRowRenderer,
-  CellMeasurer,
-  CellMeasurerCache,
-  Index,
-  IndexRange,
-} from "react-virtualized";
+import { Index, IndexRange } from "react-virtualized";
 
 import useFirebase from "../../hooks/useFirebase";
 import Container from "../../atoms/Container";
@@ -26,6 +17,7 @@ import displaySlice from "../../../modules/display";
 import { User } from "../../../share/models/User";
 import { PostDocument, Post } from "../../../share/models/Post";
 import LoadingPostListItem from "./LoadingPostListItem";
+import InfiniteList, { RowRendererProps } from "./InfiniteList";
 
 type RecentPost = Post & {
   author: User;
@@ -64,63 +56,9 @@ const PostList: FC = (props) => {
     ({ display }: RootState) => display.recentPost
   );
 
-  const rowRenderer: ListRowRenderer = ({ key, index, style, parent }) => {
-    const post = recentPosts[index];
-
-    return (
-      <CellMeasurer
-        key={key}
-        cache={cellMeasurerCache}
-        parent={parent}
-        rowIndex={index}
-      >
-        {({ registerChild, measure }) => (
-          <div
-            // @ts-ignore
-            ref={registerChild}
-            style={{
-              ...style,
-              padding: "10px 3px",
-            }}
-          >
-            {!post ? (
-              <LoadingPostListItem key={index} />
-            ) : (
-              <Link
-                href={{
-                  pathname: "/post",
-                  query: { id: post.id },
-                }}
-              >
-                <PostListItem
-                  key={post.id}
-                  authorName={post.author.displayName || post.author.userName}
-                  authorProfileImageUrl={post.author.profileImageUrl}
-                  timestamp={post.timestamp}
-                  mediaUrls={post.mediaUrls}
-                  text={post.text}
-                  onMount={measure}
-                />
-              </Link>
-            )}
-          </div>
-        )}
-      </CellMeasurer>
-    );
-  };
-
-  const cellMeasurerCache = useMemo(
-    () =>
-      new CellMeasurerCache({
-        defaultHeight: 50,
-        fixedWidth: true,
-      }),
-    []
-  );
-
   const rowCount = useMemo(
     () =>
-      hasMoreItem && firebaseApp ? recentPosts.length + 5 : recentPosts.length,
+      hasMoreItem && firebaseApp ? recentPosts.length + 1 : recentPosts.length,
     [hasMoreItem, recentPosts, firebaseApp]
   );
 
@@ -129,15 +67,15 @@ const PostList: FC = (props) => {
   };
 
   const loadMoreRows = useCallback(
-    async ({ startIndex, stopIndex }: IndexRange): Promise<any> => {
-      console.log("loadMoreRows", startIndex, stopIndex, lastPostDocId);
+    async ({}: IndexRange): Promise<any> => {
+      console.log("loadMoreRows", lastPostDocId);
 
       if (!firebaseApp) {
         console.warn("FirebaseApp is not initialized.");
         return;
       }
 
-      const limit = stopIndex - startIndex + 1;
+      const limit = 5;
       type PostColRef = firestore.CollectionReference<PostDocument>;
       const postColRef = firebaseApp
         .firestore()
@@ -172,34 +110,54 @@ const PostList: FC = (props) => {
     [firebaseApp, lastPostDocId, lastPostDocId, dispatch]
   );
 
+  const renderRow = (props: RowRendererProps) => {
+    const { index, style, measure, registerChild } = props;
+    const post = recentPosts[index];
+
+    return (
+      <div
+        // @ts-ignore
+        ref={registerChild}
+        style={{
+          ...style,
+          padding: "10px 3px",
+        }}
+      >
+        {!post ? (
+          <LoadingPostListItem key={index} />
+        ) : (
+          <Link
+            href={{
+              pathname: "/post",
+              query: { id: post.id },
+            }}
+          >
+            <PostListItem
+              key={post.id}
+              authorName={post.author.displayName || post.author.userName}
+              authorProfileImageUrl={post.author.profileImageUrl}
+              timestamp={post.timestamp}
+              mediaUrls={post.mediaUrls}
+              text={post.text}
+              onMount={measure}
+            />
+          </Link>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div {...others}>
       <Container>
-        <InfiniteLoader
+        <InfiniteList
           isRowLoaded={isRowLoaded}
-          loadMoreRows={loadMoreRows}
+          onLoadRows={loadMoreRows}
           rowCount={rowCount}
+          threshold={1}
         >
-          {({ onRowsRendered }) => (
-            <WindowScroller>
-              {({ height, width, scrollTop, isScrolling }) => (
-                <List
-                  height={height}
-                  autoHeight={true}
-                  width={width}
-                  autoWidth={true}
-                  isScrolling={isScrolling}
-                  // onScroll={onChildScroll}
-                  onRowsRendered={onRowsRendered}
-                  scrollTop={scrollTop}
-                  rowCount={rowCount}
-                  rowHeight={cellMeasurerCache.rowHeight}
-                  rowRenderer={rowRenderer}
-                />
-              )}
-            </WindowScroller>
-          )}
-        </InfiniteLoader>
+          {renderRow}
+        </InfiniteList>
       </Container>
     </div>
   );

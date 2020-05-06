@@ -17,7 +17,12 @@ const index = client.initIndex(config.algolia.indexName);
  */
 export interface SearchState {
   query?: string;
-  result?: SearchResponse<AlgoliaObject>;
+  hits?: AlgoliaObject[];
+  //  (note: this value is zero-based)
+  // https://www.algolia.com/doc/guides/building-search-ui/going-further/backend-search/how-to/pagination/
+  currentPage?: number;
+  availablePageCount?: number;
+  // result?: SearchResponse<AlgoliaObject>;
 }
 
 /** @see search */
@@ -28,8 +33,20 @@ type SearchAction = ThunkAction<
   Action<string>
 >;
 
+/** @see nextPage */
+type NextPageAction = ThunkAction<
+  Promise<void>,
+  RootState,
+  undefined,
+  Action<string>
+>;
+
 type InternalSearchAction = PayloadAction<{
   result?: SearchResponse<AlgoliaObject>;
+}>;
+
+type InternalNextPageAction = PayloadAction<{
+  result: SearchResponse<AlgoliaObject>;
 }>;
 
 type InputQueryAction = PayloadAction<{
@@ -51,14 +68,14 @@ export const search = (query: string): SearchAction => async (
     return;
   }
 
+  const trimedQuery = query.trim();
+
   const check = async (prevQuery: string) => {
     const currentQuery = getState().search.query;
 
     if (currentQuery === prevQuery) {
-      console.log("query is the same as the last time.", query);
-
-      const result = await index.search<AlgoliaObject>(query);
-      console.log("result", result);
+      const result = await index.search<AlgoliaObject>(currentQuery, {});
+      console.log("search result:", result);
       dispatch(searchSlice.actions.search({ result }));
     }
   };
@@ -67,7 +84,22 @@ export const search = (query: string): SearchAction => async (
     clearTimeout(searchTimeoutId);
   }
 
-  searchTimeoutId = setTimeout(check, 1000, query);
+  searchTimeoutId = setTimeout(check, 1000, trimedQuery);
+};
+
+export const nextPage = (): NextPageAction => async (dispatch, getState) => {
+  const { query, currentPage } = getState().search;
+
+  if (query === undefined || currentPage === undefined) {
+    console.warn("");
+    return;
+  }
+
+  const result = await index.search<AlgoliaObject>(query, {
+    page: currentPage + 1,
+  });
+
+  dispatch(searchSlice.actions.nextPage({ result }));
 };
 
 /*******************************************************************************
@@ -76,7 +108,9 @@ export const search = (query: string): SearchAction => async (
 
 const initialState: SearchState = {
   query: undefined,
-  result: undefined,
+  hits: undefined,
+  currentPage: undefined,
+  availablePageCount: undefined,
 };
 
 const searchSlice = createSlice({
@@ -87,7 +121,16 @@ const searchSlice = createSlice({
       state.query = action.payload.query;
     },
     search: (state: SearchState, action: InternalSearchAction) => {
-      state.result = action.payload.result;
+      state.hits = action.payload.result?.hits;
+      state.currentPage = action.payload.result?.page;
+      state.availablePageCount = action.payload.result?.nbPages;
+    },
+    nextPage: (state: SearchState, action: InternalNextPageAction) => {
+      state.hits = state.hits
+        ? [...state.hits, ...action.payload.result.hits]
+        : [...action.payload.result.hits];
+      state.currentPage = action.payload.result.page;
+      state.availablePageCount = action.payload.result.nbPages;
     },
   },
 });
