@@ -29,11 +29,15 @@ const onCreateCommend = async (
     const data = await createNewDocData(igMedia);
 
     if (data) {
-      const firestoreResult = await saveFirestore(data);
-      console.log(`firestore commit is succeed.`, firestoreResult);
+      const firestoreResults = await saveFirestore(data);
+      console.log(
+        `firestore commit is succeed. write result counts: ${firestoreResults.length}`
+      );
 
       const algoliaResult = await saveAlgoliaObject(data);
-      console.log(`algolia object saving is succeed.`, algoliaResult);
+      console.log(
+        `algolia object saving is succeed. objectID: ${algoliaResult.objectID}`
+      );
     }
   }
 };
@@ -87,7 +91,7 @@ const createNewDocData = async (
   const newUserDoc: UserDocument = {
     id: userId,
     originalId: originalUserId,
-    provider: "instagram",
+    provider,
     displayName: full_name,
     userName: username,
     profileImageUrl: profile_pic_url,
@@ -111,9 +115,7 @@ const createNewDocData = async (
   };
 
   console.log(
-    `saving target doc of post and user are created.`,
-    newPostDoc,
-    newUserDoc
+    `saving target doc of post and user are created. postId: ${newPostDoc.id}, userId: ${newUserDoc.id}`
   );
 
   return {
@@ -157,7 +159,7 @@ const saveAlgoliaObject = async (params: {
     authorName: user.displayName || user.userName,
     authorProfileImageUrl: user.profileImageUrl,
     timestamp: post.timestamp.toMillis(),
-    mediaUrl: post.me[0],
+    mediaUrl: post.mediaUrls[0],
   };
 
   return index.saveObject(newObject);

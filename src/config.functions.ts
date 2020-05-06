@@ -9,6 +9,12 @@ export interface Config {
     api_key: string;
     index_name: string;
   };
+  twitter: {
+    consumer_key: string;
+    consumer_secret: string;
+    access_token: string;
+    access_token_secret: string;
+  };
 }
 const config = _config() as Config;
 export default config;
@@ -20,4 +26,9 @@ export default config;
   config.algolia.app_id;
   config.algolia.api_key;
   config.algolia.index_name;
+
+  config.twitter.consumer_key;
+  config.twitter.consumer_secret;
+  config.twitter.access_token;
+  config.twitter.access_token_secret;
 })();
