@@ -2,11 +2,15 @@ import { firestore } from "firebase-admin";
 import { EventContext } from "firebase-functions";
 import fetch from "node-fetch";
 import { JSDOM } from "jsdom";
+import algoliasearch from "algoliasearch";
+import { SaveObjectResponse } from "@algolia/client-search";
 
 import { UserDocument } from "../../share/models/User";
 import { PostDocument } from "../../share/models/Post";
 import { IGHashtagRecentMedia, IGSharedData } from "../../share/models/IG";
 import { CommandDocument } from "../../share/models/Command";
+import config from "../../config.functions";
+import { AlgoliaObject } from "../../share/models/Algolia";
 
 type UserColRef = firestore.CollectionReference<UserDocument>;
 type PostColRef = firestore.CollectionReference<PostDocument>;
@@ -20,16 +24,31 @@ const onCreateCommend = async (
     | undefined;
 
   if (newCommand?.type === "LOAD_IG_HASHTAG_RECENT_MEDIA") {
-    const data = snapshot.data() as IGHashtagRecentMedia;
+    const igMedia = snapshot.data() as IGHashtagRecentMedia;
 
-    return onLoadIgHashtagRecentMedia(data);
+    const data = await createNewDocData(igMedia);
+
+    if (data) {
+      const firestoreResult = await saveFirestore(data);
+      console.log(`firestore commit is succeed.`, firestoreResult);
+
+      const algoliaResult = await saveAlgoliaObject(data);
+      console.log(`algolia object saving is succeed.`, algoliaResult);
+    }
   }
 };
 
-const onLoadIgHashtagRecentMedia = async (igMedia: IGHashtagRecentMedia) => {
+const createNewDocData = async (
+  igMedia: IGHashtagRecentMedia
+): Promise<
+  | {
+      post: PostDocument;
+      user: UserDocument;
+    }
+  | undefined
+> => {
   const postCol = firestore().collection(`posts`) as PostColRef;
   const userCol = firestore().collection(`users`) as UserColRef;
-  const batch = firestore().batch();
 
   const provider = "instagram";
   const originalPostId = igMedia.id;
@@ -38,20 +57,17 @@ const onLoadIgHashtagRecentMedia = async (igMedia: IGHashtagRecentMedia) => {
   const postDocRef = postCol.doc(postId);
   const postDoc = await postDocRef.get();
 
-  const log = ((id: string) => (message: any): void => {
-    // tslint:disable-next-line
-    console.log(`[onLoadIgHashtagRecentMedia] ${id} - ${message}`);
-  })(originalPostId);
-
-  log(`IGMedia with ID '${igMedia.id}' is already existing. end function.`);
-
   if (postDoc.exists) {
-    log(`IGMedia with ID '${igMedia.id}' is already existing. end function.`);
+    console.log(
+      `IGMedia with ID '${igMedia.id}' is already existing. end function.`
+    );
     return;
   }
 
   const igSharedData = await parsePermalink(igMedia.permalink);
-  log(`IGMedia's sharedData is parsed. permalink: ${igMedia.permalink}`);
+  console.log(
+    `SharedData of IGMedia with ID '${igMedia.id}' is parsed. permalink: ${igMedia.permalink}`
+  );
 
   const igShortcodeMedia =
     igSharedData.entry_data.PostPage[0].graphql.shortcode_media;
@@ -67,22 +83,16 @@ const onLoadIgHashtagRecentMedia = async (igMedia: IGHashtagRecentMedia) => {
   const userId = `${provider}|${originalUserId}`;
 
   const userDocRef = userCol.doc(userId);
-  const userDoc = await postDocRef.get();
 
-  if (!userDoc.exists) {
-    log(`author with ID '${authorId}' is not existing on firestore as user.`);
-
-    const newUserDoc: UserDocument = {
-      id: userId,
-      originalId: originalUserId,
-      provider: "instagram",
-      displayName: full_name,
-      userName: username,
-      profileImageUrl: profile_pic_url,
-      createdAt: firestore.FieldValue.serverTimestamp(),
-    };
-    batch.set(userDocRef, newUserDoc, { merge: true });
-  }
+  const newUserDoc: UserDocument = {
+    id: userId,
+    originalId: originalUserId,
+    provider: "instagram",
+    displayName: full_name,
+    userName: username,
+    profileImageUrl: profile_pic_url,
+    createdAt: firestore.FieldValue.serverTimestamp(),
+  };
 
   const newPostDoc: PostDocument = {
     id: postId,
@@ -99,10 +109,58 @@ const onLoadIgHashtagRecentMedia = async (igMedia: IGHashtagRecentMedia) => {
     deleted: false,
     createdAt: firestore.FieldValue.serverTimestamp(),
   };
-  batch.set(postDocRef, newPostDoc, { merge: true });
 
-  await batch.commit();
-  log(`commit of batch is succeed.`);
+  console.log(
+    `saving target doc of post and user are created.`,
+    newPostDoc,
+    newUserDoc
+  );
+
+  return {
+    post: newPostDoc,
+    user: newUserDoc,
+  };
+};
+
+const saveFirestore = async (params: {
+  post: PostDocument;
+  user: UserDocument;
+}) => {
+  const { post, user } = params;
+
+  const postCol = firestore().collection(`posts`) as PostColRef;
+  const postDocRef = postCol.doc(post.id);
+
+  const userCol = firestore().collection(`users`) as UserColRef;
+  const userDocRef = userCol.doc(user.id);
+
+  const batch = firestore().batch();
+
+  batch.set(userDocRef, user, { merge: true });
+  batch.set(postDocRef, post, { merge: true });
+
+  return batch.commit();
+};
+
+const saveAlgoliaObject = async (params: {
+  post: PostDocument;
+  user: UserDocument;
+}): Promise<SaveObjectResponse> => {
+  const { post, user } = params;
+
+  const algolia = algoliasearch(config.algolia.app_id, config.algolia.api_key);
+  const index = algolia.initIndex(config.algolia.index_name);
+
+  const newObject: AlgoliaObject = {
+    objectID: post.id,
+    text: post.text,
+    authorName: user.displayName || user.userName,
+    authorProfileImageUrl: user.profileImageUrl,
+    timestamp: post.timestamp.toMillis(),
+    mediaUrl: post.me[0],
+  };
+
+  return index.saveObject(newObject);
 };
 
 const parsePermalink = async (permalink: string): Promise<IGSharedData> => {
