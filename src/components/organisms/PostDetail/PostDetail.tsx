@@ -13,6 +13,7 @@ import {
 } from "@material-ui/core";
 import { red } from "@material-ui/core/colors";
 
+import A from "../../helper/A";
 import { dateFormat } from "../../../helper/format";
 import InstagramSvgIcon from "../../atoms/svg/InstagramSvgIcon";
 import TwitterSvgIcon from "../../atoms/svg/TwitterSvgIcon";
@@ -82,7 +83,7 @@ const PostDetail: FC<PostDetailProps> = (props) => {
             return (
               <span key={i} onClick={onHashtagLinkClicked(word)}>
                 <Link href={`/search`}>
-                  <a>{word}</a>
+                  <A>{word}</A>
                 </Link>
               </span>
             );
@@ -90,9 +91,9 @@ const PostDetail: FC<PostDetailProps> = (props) => {
 
           if (word.match(urlPattern)) {
             return (
-              <span key={i}>
-                <a href={word}>{word}</a>
-              </span>
+              <A key={i} href={word}>
+                {word}
+              </A>
             );
           }
 
@@ -132,17 +133,7 @@ const PostDetail: FC<PostDetailProps> = (props) => {
         title="Paella dish"
       />
       <CardContent>
-        <Typography
-          variant="body2"
-          color="textSecondary"
-          component="div"
-          css={`
-            & > a {
-              text-decoration: none;
-              margin: 0 2px;
-            }
-          `}
-        >
+        <Typography variant="body2" color="textSecondary" component="div">
           {linkableText}
         </Typography>
       </CardContent>

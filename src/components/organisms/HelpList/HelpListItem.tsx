@@ -17,7 +17,7 @@ const Body = styled.div`
 
 interface HelpListItemProps {
   title: string;
-  body: string;
+  body: React.ReactElement;
 }
 const HelpListItem: FC<HelpListItemProps> = (props) => {
   const { title, body } = props;
@@ -25,7 +25,7 @@ const HelpListItem: FC<HelpListItemProps> = (props) => {
   return (
     <Root>
       <Title>{title}</Title>
-      <Body dangerouslySetInnerHTML={{ __html: body }} />
+      <Body>{body}</Body>
     </Root>
   );
 };
