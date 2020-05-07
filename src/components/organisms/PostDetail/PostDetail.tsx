@@ -1,4 +1,6 @@
-import React, { FC, useMemo, useState } from "react";
+import React, { FC, Fragment, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
+import Link from "next/link";
 
 import {
   Avatar,
@@ -15,6 +17,7 @@ import { dateFormat } from "../../../helper/format";
 import InstagramSvgIcon from "../../atoms/svg/InstagramSvgIcon";
 import TwitterSvgIcon from "../../atoms/svg/TwitterSvgIcon";
 import { Provider } from "../../../share/models/types";
+import { search } from "../../../modules/search";
 
 interface PostDetailProps {
   authorName: string;
@@ -35,6 +38,7 @@ const PostDetail: FC<PostDetailProps> = (props) => {
     text,
   } = props;
 
+  const dispatch = useDispatch();
   const [now] = useState(new Date());
   const [formattedNow] = useState(dateFormat(now, timestamp));
 
@@ -57,40 +61,47 @@ const PostDetail: FC<PostDetailProps> = (props) => {
     return undefined;
   }, [provider]);
 
+  const onHashtagLinkClicked = (hashtag: string) => () => {
+    dispatch(search(hashtag));
+  };
+
   const linkableText = useMemo(() => {
-    // https://stackoverflow.com/questions/24083983/detecting-hashtags-and-in-string
-    // https://github.com/textlint-ja/textlint-rule-preset-JTF-style/issues/1#issuecomment-145887697
+    // // https://stackoverflow.com/questions/24083983/detecting-hashtags-and-in-string
+    // // https://github.com/textlint-ja/textlint-rule-preset-JTF-style/issues/1#issuecomment-145887697
     const hashtagPattern = /#([A-Za-z0-9\-\.\_]|[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|[\uD840-\uD87F][\uDC00-\uDFFF]|[ぁ-んァ-ヶー])+/g;
-    const hashtags = text.match(hashtagPattern);
 
-    // https://stackoverflow.com/questions/24083983/detecting-hashtags-and-in-string
+    // // https://stackoverflow.com/questions/24083983/detecting-hashtags-and-in-string
     const urlPattern = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
-    const urls = text.match(urlPattern);
 
-    let replaced = text;
-    if (hashtags) {
-      hashtags.forEach((hashtag) => {
-        const patten = new RegExp(`${hashtag}(\\s|$)`);
-        const url = `https://www.instagram.com/explore/tags/${hashtag.replace(
-          "#",
-          ""
-        )}/`;
-        replaced = replaced.replace(
-          patten,
-          `<a href="${url}" target="_blank">${hashtag}</a>`
-        );
-      });
-    }
-    if (urls) {
-      urls.forEach((url) => {
-        replaced = replaced.replace(
-          url,
-          `<a href="${url}" target="_blank">${url}</a>`
-        );
-      });
-    }
+    return text.split(/\n/).map((line, i) => {
+      let inner = [<br />];
 
-    return replaced;
+      if (line) {
+        inner = line.split(/( |　)/).map((word, i) => {
+          if (word.match(hashtagPattern)) {
+            return (
+              <span key={i} onClick={onHashtagLinkClicked(word)}>
+                <Link href={`/search`}>
+                  <a>{word}</a>
+                </Link>
+              </span>
+            );
+          }
+
+          if (word.match(urlPattern)) {
+            return (
+              <span key={i}>
+                <a href={word}>{word}</a>
+              </span>
+            );
+          }
+
+          return <Fragment key={i}>{word}</Fragment>;
+        });
+      }
+
+      return <div key={i}>{inner}</div>;
+    });
   }, [text]);
 
   return (
@@ -124,17 +135,16 @@ const PostDetail: FC<PostDetailProps> = (props) => {
         <Typography
           variant="body2"
           color="textSecondary"
-          component="p"
+          component="div"
           css={`
-            white-space: pre-wrap;
-
             & > a {
               text-decoration: none;
               margin: 0 2px;
             }
           `}
-          dangerouslySetInnerHTML={{ __html: linkableText }}
-        />
+        >
+          {linkableText}
+        </Typography>
       </CardContent>
     </Card>
   );
