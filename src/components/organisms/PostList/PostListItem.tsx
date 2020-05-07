@@ -1,4 +1,4 @@
-import React, { FC, forwardRef, useEffect, useState } from "react";
+import React, { FC, forwardRef, useEffect, useMemo, useState } from "react";
 
 import {
   Avatar,
@@ -7,10 +7,14 @@ import {
   CardMedia,
   CardContent,
   Typography,
+  IconButton,
 } from "@material-ui/core";
 import { red } from "@material-ui/core/colors";
 
 import { dateFormat } from "../../../helper/format";
+import { Provider } from "../../../share/models/types";
+import InstagramSvgIcon from "../../atoms/svg/InstagramSvgIcon";
+import TwitterSvgIcon from "../../atoms/svg/TwitterSvgIcon";
 
 interface PostListItemProps {
   authorName: string;
@@ -18,6 +22,7 @@ interface PostListItemProps {
   timestamp: Date;
   mediaUrls: string[];
   text: string;
+  provider: Provider;
   onMount?: () => void;
 }
 
@@ -28,6 +33,7 @@ const PostListItem: FC<PostListItemProps> = forwardRef((props, ref) => {
     timestamp,
     mediaUrls,
     text,
+    provider,
     onMount,
     ...others
   } = props;
@@ -40,6 +46,24 @@ const PostListItem: FC<PostListItemProps> = forwardRef((props, ref) => {
 
   const [now] = useState(new Date());
   const [formattedNow] = useState(dateFormat(now, timestamp));
+  const rightIcon = useMemo(() => {
+    if (provider === "instagram") {
+      return (
+        <IconButton>
+          <InstagramSvgIcon />
+        </IconButton>
+      );
+    }
+    if (provider === "twitter") {
+      return (
+        <IconButton>
+          <TwitterSvgIcon />
+        </IconButton>
+      );
+    }
+
+    return undefined;
+  }, [provider]);
 
   return (
     <Card
@@ -63,6 +87,7 @@ const PostListItem: FC<PostListItemProps> = forwardRef((props, ref) => {
         }
         title={authorName}
         subheader={formattedNow}
+        action={rightIcon}
       />
       <CardMedia
         css={`

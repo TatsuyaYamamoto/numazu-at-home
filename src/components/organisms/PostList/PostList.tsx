@@ -139,6 +139,7 @@ const PostList: FC = (props) => {
               timestamp={post.timestamp}
               mediaUrls={post.mediaUrls}
               text={post.text}
+              provider={post.provider}
               onMount={measure}
             />
           </Link>

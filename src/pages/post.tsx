@@ -4,11 +4,9 @@ import { NextPage } from "next";
 
 import { firestore } from "firebase";
 
-import { Button, SvgIcon } from "@material-ui/core";
+import { Button } from "@material-ui/core";
 import styled from "styled-components";
 
-// @ts-ignore
-import InstagramBrand from "../components/atoms/svg/instagram-brands.svg";
 import { InternalAppBar } from "../components/organisms/AppBar";
 import PostDetail from "../components/organisms/PostDetail/PostDetail";
 import useFirebase from "../components/hooks/useFirebase";
@@ -24,6 +22,8 @@ import { importPostDocs } from "../modules/entities";
 import { Ogp, Title } from "../components/helper/meta";
 
 import config from "../config";
+import InstagramSvgIcon from "../components/atoms/svg/InstagramSvgIcon";
+import TwitterSvgIcon from "../components/atoms/svg/TwitterSvgIcon";
 
 const Actions = styled.div`
   margin-top: 40px;
@@ -109,6 +109,10 @@ const PostPage: NextPage<
         {`Numazu@Home - ${user.displayName || user.userName}さんの投稿`}
       </Title>
     );
+
+    const buttonIcon =
+      post.provider === "twitter" ? <TwitterSvgIcon /> : <InstagramSvgIcon />;
+
     body = (
       <>
         <PostDetail
@@ -117,6 +121,7 @@ const PostPage: NextPage<
           timestamp={post.timestamp}
           mediaUrls={post.mediaUrls}
           text={post.text}
+          provider={post.provider}
         />
         <Actions>
           <ShareActions>
@@ -126,11 +131,7 @@ const PostPage: NextPage<
           <SourceLinkActions>
             <Button
               href={post.sourceUrl}
-              startIcon={
-                <SvgIcon>
-                  <InstagramBrand />
-                </SvgIcon>
-              }
+              startIcon={buttonIcon}
               css={`
                 ${primaryBackground}
               `}

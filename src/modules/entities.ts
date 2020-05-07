@@ -60,6 +60,7 @@ export const importPostDocs = (
       timestamp: post.timestamp.toDate(),
       mediaUrls: post.mediaUrls,
       sourceUrl: post.sourceUrl,
+      provider: post.provider,
     };
 
     users[author.id] = {

@@ -1,3 +1,5 @@
+import { Provider } from "./types";
+
 export interface AlgoliaObject {
   objectID: string;
   text: string;
@@ -5,4 +7,5 @@ export interface AlgoliaObject {
   authorProfileImageUrl: string;
   timestamp: number;
   mediaUrl: string;
+  provider: Provider;
 }

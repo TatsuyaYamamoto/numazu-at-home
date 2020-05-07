@@ -26,6 +26,7 @@ export const saveAlgoliaObjects = async (params: {
       authorProfileImageUrl: user.profileImageUrl,
       timestamp: post.timestamp.toMillis(),
       mediaUrl: post.mediaUrls[0],
+      provider: post.provider,
     };
   });
 

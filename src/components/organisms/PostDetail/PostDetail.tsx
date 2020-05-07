@@ -6,11 +6,15 @@ import {
   CardContent,
   CardHeader,
   CardMedia,
+  IconButton,
   Typography,
 } from "@material-ui/core";
 import { red } from "@material-ui/core/colors";
 
 import { dateFormat } from "../../../helper/format";
+import InstagramSvgIcon from "../../atoms/svg/InstagramSvgIcon";
+import TwitterSvgIcon from "../../atoms/svg/TwitterSvgIcon";
+import { Provider } from "../../../share/models/types";
 
 interface PostDetailProps {
   authorName: string;
@@ -18,6 +22,7 @@ interface PostDetailProps {
   timestamp: Date;
   mediaUrls: string[];
   text: string;
+  provider: Provider;
 }
 
 const PostDetail: FC<PostDetailProps> = (props) => {
@@ -26,11 +31,31 @@ const PostDetail: FC<PostDetailProps> = (props) => {
     authorProfileImageUrl,
     timestamp,
     mediaUrls,
+    provider,
     text,
   } = props;
 
   const [now] = useState(new Date());
   const [formattedNow] = useState(dateFormat(now, timestamp));
+
+  const rightIcon = useMemo(() => {
+    if (provider === "instagram") {
+      return (
+        <IconButton>
+          <InstagramSvgIcon />
+        </IconButton>
+      );
+    }
+    if (provider === "twitter") {
+      return (
+        <IconButton>
+          <TwitterSvgIcon />
+        </IconButton>
+      );
+    }
+
+    return undefined;
+  }, [provider]);
 
   const linkableText = useMemo(() => {
     // https://stackoverflow.com/questions/24083983/detecting-hashtags-and-in-string
@@ -83,6 +108,7 @@ const PostDetail: FC<PostDetailProps> = (props) => {
         }
         title={authorName}
         subheader={formattedNow}
+        action={rightIcon}
       />
       <CardMedia
         css={`

@@ -29,4 +29,5 @@ export interface Post {
   timestamp: Date;
   mediaUrls: string[];
   sourceUrl: string;
+  provider: Provider;
 }

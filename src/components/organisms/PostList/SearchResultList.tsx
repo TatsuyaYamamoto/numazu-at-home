@@ -87,6 +87,7 @@ const SearchResultList: FC = (props) => {
               timestamp={new Date(hit.timestamp)}
               mediaUrls={[hit.mediaUrl]}
               text={hit.text}
+              provider={hit.provider}
               onMount={measure}
             />
           </Link>
