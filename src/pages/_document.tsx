@@ -24,6 +24,7 @@ class MyDocument extends Document {
             rel="stylesheet"
             href="https://unpkg.com/ress/dist/ress.min.css"
           />
+          <link rel="icon" href="/favicon.ico" />
         </Head>
         <body>
           <Main />

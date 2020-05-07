@@ -11,11 +11,11 @@ const helps = [
     title: "このWebサイトはなんですか？",
     body: (
       <>
-        &emsp;沼津市が立ち上げた"
+        &emsp;沼津市が立ち上げた
         <A href={takeoutUrl} target="_blank">
-          テイクアウト de ステイホーム
+          "テイクアウト de ステイホーム"
         </A>
-        "がより盛り上がることを願って
+        がより盛り上がることを願って
         <A href={t28TwitterUrl} target="_blank">
           有志
         </A>
