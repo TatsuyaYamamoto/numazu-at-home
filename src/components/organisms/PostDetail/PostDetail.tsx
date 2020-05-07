@@ -46,14 +46,30 @@ const PostDetail: FC<PostDetailProps> = (props) => {
   const rightIcon = useMemo(() => {
     if (provider === "instagram") {
       return (
-        <IconButton>
+        <IconButton
+          disableRipple={true}
+          css={`
+            cursor: unset;
+            &:hover {
+              background-color: unset;
+            }
+          `}
+        >
           <InstagramSvgIcon />
         </IconButton>
       );
     }
     if (provider === "twitter") {
       return (
-        <IconButton>
+        <IconButton
+          disableRipple={true}
+          css={`
+            cursor: unset;
+            &:hover {
+              background-color: unset;
+            }
+          `}
+        >
           <TwitterSvgIcon />
         </IconButton>
       );
