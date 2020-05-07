@@ -3,7 +3,7 @@ import React from "react";
 import A from "../components/helper/A";
 
 const t28TwitterUrl = `https://twitter.com/T28_tatsuya`;
-const contactUrl = ``;
+const contactUrl = `https://docs.google.com/forms/d/e/1FAIpQLSe5bSPvJ5XQM0IACqZ9NKoHuRUAcC_V1an16JGwHh6HeGd-oQ/viewform?usp=pp_url&entry.326070868=Numazu@Home`;
 const takeoutUrl = `https://numazukanko.jp/feature/cheer-for-numazu/top`;
 
 const helps = [

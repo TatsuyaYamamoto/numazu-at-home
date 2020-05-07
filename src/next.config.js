@@ -1,5 +1,6 @@
 const env = {
   nodeEnv: process.env.NODE_ENV,
+  gaTrackingId: "UA-127664761-8",
 };
 
 const webpack = (config) => {
