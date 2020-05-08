@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NextPage } from "next";
+import { useRouter } from "next/router";
 
 import { firestore } from "firebase";
 
@@ -21,9 +22,9 @@ import { RootState } from "../modules/store";
 import { importPostDocs } from "../modules/entities";
 import { Ogp, Title } from "../components/helper/meta";
 
-import config from "../config";
 import InstagramSvgIcon from "../components/atoms/svg/InstagramSvgIcon";
 import TwitterSvgIcon from "../components/atoms/svg/TwitterSvgIcon";
+import config from "../config";
 
 const Actions = styled.div`
   margin-top: 40px;
@@ -40,7 +41,7 @@ const SourceLinkActions = styled.div`
   margin: 20px 0;
 `;
 
-const detailSelector = (id?: string) => (
+const detailSelector = (id: string | null) => (
   state: RootState
 ): { post: Post; user: User } | undefined => {
   if (!id) {
@@ -58,14 +59,21 @@ const detailSelector = (id?: string) => (
   return user ? { post, user } : undefined;
 };
 
-const PostPage: NextPage<
-  { postId: string; locationHref: string } | undefined
-> = (props) => {
-  const { postId, locationHref } = props;
-
-  const detail = useSelector(detailSelector(postId));
+const PostPage: NextPage = () => {
   const { app: firebaseApp } = useFirebase();
   const dispatch = useDispatch();
+  const router = useRouter();
+
+  const [{ postId, locationHref }] = useState(() => {
+    const url = `${config.origin}${router.asPath}`;
+    const { searchParams } = new URL(url);
+    return {
+      locationHref: url,
+      postId: searchParams.get("id"),
+    };
+  });
+
+  const detail = useSelector(detailSelector(postId));
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -79,6 +87,7 @@ const PostPage: NextPage<
 
     if (!postId) {
       console.warn("postId is null.");
+      router.push(`/`);
       return;
     }
 
@@ -149,34 +158,12 @@ const PostPage: NextPage<
     <>
       <>
         {title}
-        <Ogp postId={postId} url={locationHref} />
+        {postId && <Ogp postId={postId} url={locationHref} />}
       </>
       <InternalAppBar showBackArrow={true} title={`投稿`} />
       <Container>{body}</Container>
     </>
   );
-};
-
-PostPage.getInitialProps = ({ pathname, query, res }) => {
-  const postId = String(query["id"]);
-
-  if (!postId) {
-    if (res) {
-      // server
-      res.writeHead(302, { Location: "/" });
-      res.end();
-      return;
-    } else {
-      // client
-      location.href = "/";
-      return;
-    }
-  }
-
-  return {
-    postId,
-    locationHref: `${config.origin}${pathname}?id=${postId}`,
-  };
 };
 
 export default PostPage;

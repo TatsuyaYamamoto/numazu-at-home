@@ -1,3 +1,5 @@
+const path = require("path");
+
 const env = {
   nodeEnv: process.env.NODE_ENV,
   gaTrackingId: "UA-127664761-8",
@@ -18,5 +20,6 @@ const webpack = (config) => {
 module.exports = {
   env,
   webpack,
-  distDir: "../dist/functions/next",
+  // このparamsが効かないので、next export -o public で指定する。
+  // outDir: path.resolve(__dirname, "..", "public"),
 };

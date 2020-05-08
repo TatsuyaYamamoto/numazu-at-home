@@ -8,11 +8,15 @@
     "node": "10"
   },
   "scripts": {
-    "clean": "rm -rf dist",
     "dev": "next src",
     "serve": "firebase emulators:start --only functions,hosting",
-    "build-client": "next build src",
-    "build-functions": "tsc --project src/tsconfig.functions.json",
+    "build-client": "run-s build-client:*",
+    "build-client:clean": "rm -rf public/*.html public/_next",
+    "build-client:build": "next build src",
+    "build-client:static-export": "next export src -o public/next && mv public/next/* public && rm -r public/next",
+    "build-functions": "run-s build-functions:*",
+    "build-functions:clean": "rm -rf dist/functions",
+    "build-functions:build": "tsc --project src/tsconfig.functions.json",
     "build-copy-deps": "run-s build-copy-deps:*",
     "build-copy-deps:cpx": "cpx '*{package.json,yarn.lock}' 'dist/functions'",
     "build-copy-deps:yarn": "yarn install --production --cwd dist/functions",
