@@ -79,12 +79,13 @@ export const createNewDocData = async (
     timestamp: firestore.Timestamp.fromDate(timestamp),
     mediaType: igMedia.media_type === "VIDEO" ? "video" : "image",
     mediaUrls: igMedia.children
-      ? igMedia.children.map(({ permalink }) => `${permalink}media`)
-      : [`${igMedia.permalink}media`],
+      ? igMedia.children.data.map(({ id }) => id)
+      : [],
     sourceUrl: igMedia.permalink,
     deleted: false,
     createdAt: firestore.FieldValue.serverTimestamp(),
   };
+  newPostDoc.mediaUrls[0] = `${igMedia.permalink}media`;
 
   console.log(
     `saving target doc of post and user are created. postId: ${newPostDoc.id}, userId: ${newUserDoc.id}`
@@ -141,7 +142,16 @@ export const searchMediasByHashtag = async (): Promise<
   const instagramBusinessAccountId = "17841412231763694";
   const hashTagId = `17870480920696380`;
   const accessToken = config.instagram_graph_api.access_token;
-  const fields: string = ["id", "caption", "permalink"].join(",");
+  const fields: string = [
+    "id",
+    "caption",
+    "children",
+    "comments_count",
+    "like_count",
+    "media_type",
+    "media_url",
+    "permalink",
+  ].join(",");
 
   const recentMediaUrl = `https://graph.facebook.com/v6.0/${hashTagId}/recent_media?fields=${fields}&user_id=${instagramBusinessAccountId}&access_token=${accessToken}`;
   const medias: IGHashtagRecentMedia[] = [];

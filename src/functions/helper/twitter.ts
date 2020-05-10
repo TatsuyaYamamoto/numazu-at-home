@@ -1,10 +1,11 @@
-import Twit from "twit";
+import Twit, { Twitter } from "twit";
 
 import config from "../../config.functions";
 import moment from "moment";
 import { PostDocument } from "../../share/models/Post";
 import { UserDocument } from "../../share/models/User";
 import { firestore } from "firebase-admin";
+import { ExtendedStatus } from "../../share/models/Twitter";
 
 const twitter = new Twit(config.twitter);
 
@@ -14,7 +15,11 @@ const userCol = firestore().collection(`users`) as UserColRef;
 
 export const searchTweets = async (
   params: Twit.Params
-): Promise<Twit.Twitter.SearchResults> => {
+): Promise<{
+  //Twit.Twitter.SearchResults
+  statuses: ExtendedStatus[];
+  search_metadata: Twitter.Metadata;
+}> => {
   return new Promise((resolve, reject) => {
     twitter.get("search/tweets", params, (err, data) => {
       if (err) {
@@ -29,8 +34,8 @@ export const searchTweets = async (
 export const rangeSearchTweets = async (
   params: Twit.Params,
   since: Date
-): Promise<Twit.Twitter.Status[]> => {
-  const rangeStatuses: Twit.Twitter.Status[] = [];
+): Promise<ExtendedStatus[]> => {
+  const rangeStatuses: ExtendedStatus[] = [];
 
   const loopSearch = async (maxId?: string) => {
     const { statuses } = await searchTweets({
@@ -76,7 +81,7 @@ export const rangeSearchTweets = async (
 };
 
 export const createNewDocData = (
-  status: Twit.Twitter.Status
+  status: ExtendedStatus
 ):
   | {
       post: PostDocument;
@@ -123,7 +128,7 @@ export const createNewDocData = (
   const [inclusiveStart, exclusiveEnd] = status.display_text_range as number[]; // use tweet_mode: "extended"
   const displayFullText = fullText.slice(inclusiveStart, exclusiveEnd + 1);
 
-  const mediaUrls = status.entities.media.map((entity) => {
+  const mediaUrls = status.extended_entities.media.map((entity) => {
     return entity.media_url_https;
   });
 

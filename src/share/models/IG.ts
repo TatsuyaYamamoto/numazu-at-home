@@ -3,12 +3,12 @@
  */
 export interface IGHashtagRecentMedia {
   caption: string; //
-  children?: { permalink: string }[]; // (only returned for Album IG Media)
+  children?: { data: { id: string }[] }; // (only returned for Album IG Media)
   comments_count: string; //
   id: string; //
   like_count: string; //
   media_type: "IMAGE" | "CAROUSEL_ALBUM" | "VIDEO"; //
-  media_url: string; // (not returned for Album IG Media)
+  media_url?: string; // (not returned for Album IG Media)
   permalink: string; //
 }
 
@@ -42,5 +42,21 @@ export interface IGSharedData {
         };
       };
     }[];
+  };
+}
+
+// https://stackoverflow.com/questions/42491896/how-to-retrieve-all-images-from-multiple-photo-post-on-instagram
+export interface IG__A1Data {
+  graphql: {
+    shortcode_media: {
+      display_url: string;
+      edge_sidecar_to_children: {
+        edges: {
+          node: {
+            display_url: string;
+          };
+        }[];
+      };
+    };
   };
 }
