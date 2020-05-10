@@ -44,24 +44,24 @@ router.post("/load_ig_hashtag_recent_media", (_, res, next) => {
       createdAt: firestore.FieldValue.serverTimestamp(),
     });
 
-    let persistedCount = 0;
-    let ignoredCount = 0;
+    let persistedIds: string[] = [];
+    let ignoredIds: string[] = [];
 
     for (const igMedia of igHashtagRecentMedias) {
       const originalPostId = igMedia.id;
       const postId = `instagram|${originalPostId}`;
 
       if (await isPostExisting(postId)) {
-        ignoredCount++;
+        ignoredIds.push(postId);
       } else {
-        persistedCount++;
+        persistedIds.push(postId);
 
         const commandDataDocRef = commandDataColRef.doc(postId);
         batch.set(commandDataDocRef, igMedia, {});
       }
     }
     console.log(
-      `divided ig-medias. persisted: ${persistedCount}, ignored: ${ignoredCount}`
+      `divided ig-medias. persisted: ${persistedIds.length}, ignored: ${ignoredIds.length}`
     );
 
     await batch.commit();
@@ -70,8 +70,10 @@ router.post("/load_ig_hashtag_recent_media", (_, res, next) => {
     res.json({
       ok: true,
       count: {
-        ignored: ignoredCount,
-        persisted: persistedCount,
+        ignoredCount: ignoredIds.length,
+        persistedCount: persistedIds.length,
+        ignoredIds,
+        persistedIds,
       },
     });
   })().catch(next);

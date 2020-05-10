@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@material-ui/core";
 import { red } from "@material-ui/core/colors";
+import Slider from "react-slick";
 
 import A from "../../helper/A";
 import { dateFormat } from "../../../helper/format";
@@ -138,16 +139,45 @@ const PostDetail: FC<PostDetailProps> = (props) => {
         subheader={formattedNow}
         action={rightIcon}
       />
-      <CardMedia
+      <Slider
+        arrows={true}
+        dots={true}
         css={`
-          width: 100%;
-          //height: 0;
-          padding-top: 100%; // 16:9
+          .slick-prev {
+            left: 0;
+            z-index: 99;
+            font-size: 30px;
+          }
+          .slick-next {
+            right: 0;
+            z-index: 99;
+            font-size: 30px;
+          }
+          .slick-dots {
+            bottom: 0;
+            li button:before {
+              color: white;
+              opacity: 0.4;
+            }
+            li.slick-active button:before {
+              color: white;
+              opacity: 0.9;
+            }
+          }
         `}
-        // TODO support multiple media
-        image={mediaUrls[0]}
-        title="Paella dish"
-      />
+      >
+        {mediaUrls.map((url) => (
+          <CardMedia
+            image={url}
+            key={url}
+            css={`
+              width: 100%;
+              //height: 0;
+              padding-top: 100%; // 16:9
+            `}
+          />
+        ))}
+      </Slider>
       <CardContent>
         <Typography variant="body2" color="textSecondary" component="div">
           {linkableText}

@@ -24,6 +24,10 @@ import "firebase/storage";
 
 import "react-virtualized/styles.css";
 
+// https://react-slick.neostack.com/docs/get-started
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
 const MyApp: FC<AppProps> = (props) => {
   const { Component, pageProps, router } = props;
   const { init: initGa, logPageView, logError } = useGa();
