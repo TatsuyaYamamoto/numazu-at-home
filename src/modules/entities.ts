@@ -4,6 +4,7 @@ import { ThunkAction } from "redux-thunk";
 import { Post, PostDocument } from "../share/models/Post";
 import { User } from "../share/models/User";
 import { RootState } from "./store";
+import { IG__A1Data } from "../share/models/IG";
 
 /*******************************************************************************
  * definitions
@@ -44,32 +45,58 @@ export const importPostDocs = (
   const posts: { [id: string]: Post } = {};
   const users: { [id: string]: User } = {};
 
-  for (const post of docs) {
-    const authorRef = post.author;
-    const authorSnap = await authorRef.get();
-    const author = authorSnap.data();
+  await Promise.all(
+    docs.map(async (post) => {
+      const authorRef = post.author;
+      const authorSnap = await authorRef.get();
+      const author = authorSnap.data();
 
-    if (!author) {
-      return;
-    }
+      if (!author) {
+        return;
+      }
 
-    posts[post.id] = {
-      id: post.id,
-      authorId: author.id,
-      text: post.text,
-      timestamp: post.timestamp.toDate(),
-      mediaUrls: post.mediaUrls,
-      sourceUrl: post.sourceUrl,
-      provider: post.provider,
-    };
+      if (post.provider === "instagram") {
+        const json: IG__A1Data = await fetch(
+          `${post.sourceUrl}?__a=1`
+        ).then((res) => res.json());
+        const {
+          display_url,
+          edge_sidecar_to_children,
+        } = json.graphql.shortcode_media;
 
-    users[author.id] = {
-      id: author.id,
-      displayName: author.displayName,
-      userName: author.userName,
-      profileImageUrl: author.profileImageUrl,
-    };
-  }
+        const mediaUrls: string[] = edge_sidecar_to_children
+          ? edge_sidecar_to_children.edges.map(({ node }) => node.display_url)
+          : [display_url];
+
+        posts[post.id] = {
+          id: post.id,
+          authorId: author.id,
+          text: post.text,
+          timestamp: post.timestamp.toDate(),
+          mediaUrls,
+          sourceUrl: post.sourceUrl,
+          provider: post.provider,
+        };
+      } else {
+        posts[post.id] = {
+          id: post.id,
+          authorId: author.id,
+          text: post.text,
+          timestamp: post.timestamp.toDate(),
+          mediaUrls: post.mediaUrls,
+          sourceUrl: post.sourceUrl,
+          provider: post.provider,
+        };
+      }
+
+      users[author.id] = {
+        id: author.id,
+        displayName: author.displayName,
+        userName: author.userName,
+        profileImageUrl: author.profileImageUrl,
+      };
+    })
+  );
 
   const newEntities = { posts, users };
   dispatch(entitiesSlice.actions.addEntities(newEntities));
