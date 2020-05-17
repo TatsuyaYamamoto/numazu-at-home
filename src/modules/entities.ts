@@ -56,9 +56,15 @@ export const importPostDocs = (
       }
 
       if (post.provider === "instagram") {
-        const json: IG__A1Data = await fetch(
-          `${post.sourceUrl}?__a=1`
-        ).then((res) => res.json());
+        const res = await fetch(`${post.sourceUrl}?__a=1`);
+
+        if (!res.ok) {
+          // TODO notify to backend that resource is deleted.
+          console.warn(`resource in '${post.sourceUrl}' not found.`);
+          return;
+        }
+        const json: IG__A1Data = await res.json();
+
         const {
           display_url,
           edge_sidecar_to_children,
