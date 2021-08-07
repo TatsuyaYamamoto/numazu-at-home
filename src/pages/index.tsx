@@ -1,17 +1,23 @@
 import React from "react";
 
-import { TopAppBar } from "../components/organisms/AppBar";
-import PostList from "../components/organisms/PostList/PostList";
-import MobileBottomNavigation from "../components/organisms/MobileBottomNavigation";
+import HelpHero from "../components/organisms/HelpHero";
+import HelpList from "../components/organisms/HelpList/HelpList";
 
-const IndexPage = () => {
-  return (
-    <>
-      <TopAppBar />
-      <PostList />
-      <MobileBottomNavigation />
-    </>
-  );
-};
+// const IndexPage = () => {
+//   return (
+//     <>
+//       <TopAppBar />
+//       <PostList />
+//       <MobileBottomNavigation />
+//     </>
+//   );
+// };
 
-export default IndexPage;
+const DeprecatedIndexPage = () => (
+  <>
+    <HelpHero />
+    <HelpList />
+  </>
+);
+
+export default DeprecatedIndexPage;

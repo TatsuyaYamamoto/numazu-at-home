@@ -8,6 +8,18 @@ const takeoutUrl = `https://numazukanko.jp/feature/cheer-for-numazu/top`;
 
 const helps = [
   {
+    title: "【2021/08/07更新】このサイトは稼働を終了しました。",
+    body: (
+      <>
+        &emsp;沼津市のイベント (
+        <A href={takeoutUrl} target="_blank">
+          "テイクアウト de ステイホーム"
+        </A>
+        ) の終了にあわせて、本アプリの稼働も終了しました。
+      </>
+    ),
+  },
+  {
     title: "このWebサイトはなんですか？",
     body: (
       <>

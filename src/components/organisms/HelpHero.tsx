@@ -1,5 +1,4 @@
 import React, { FC } from "react";
-import { useRouter } from "next/router";
 
 import styled, { css } from "styled-components";
 import {
@@ -10,7 +9,6 @@ import {
 } from "@material-ui/core";
 
 import Logo from "../atoms/Logo";
-import BackArrowButton from "../molecules/BackArrowButton";
 import AppVersion from "../atoms/AppVersion";
 import Container from "../atoms/Container";
 import { primaryBackground } from "../helper/styles";
@@ -46,19 +44,10 @@ const StyledAppBar = styled(MuiAppBar)`
 `;
 
 const HelpHero: FC = () => {
-  const router = useRouter();
-
-  const onClickBack = () => {
-    // TODO prevent to go to external page.
-    router.back();
-  };
-
   return (
     <Root>
       <StyledAppBar elevation={0} position={"relative"}>
-        <Toolbar>
-          <BackArrowButton onClick={onClickBack} />
-        </Toolbar>
+        <Toolbar />
       </StyledAppBar>
       <LogoArea>
         <Logo fontSize={40} />
